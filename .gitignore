@@ -1,0 +1,27 @@
+# Credentials & Secrets
+.env
+*.key
+*.pem
+*.secret
+
+# Runtime
+*.db
+*.log
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Archive
+inbox/
+archive/

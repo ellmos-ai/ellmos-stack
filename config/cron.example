@@ -1,0 +1,12 @@
+# ellmos-stack Cron Jobs
+# Install with: sudo cp config/cron.example /etc/cron.d/ellmos-stack
+# Adjust paths if you installed to a different location.
+
+SHELL=/bin/bash
+PYTHONIOENCODING=utf-8
+
+# KnowledgeDigest: Index new documents from inbox/ every 5 minutes
+*/5 * * * * root cd /opt/ellmos-stack/data/knowledgedigest && /opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/auto_ingest.py >> /var/log/ellmos-stack-ingest.log 2>&1
+
+# KnowledgeDigest: Process 1 summary queue item every 15 minutes via Ollama
+*/15 * * * * root cd /opt/ellmos-stack/data/knowledgedigest && /opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/process_summaries.py >> /var/log/ellmos-stack-summaries.log 2>&1
