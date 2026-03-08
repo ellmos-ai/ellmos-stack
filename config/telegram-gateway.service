@@ -1,0 +1,14 @@
+[Unit]
+Description=ellmos Telegram Gateway
+After=network.target docker.service
+
+[Service]
+Type=simple
+EnvironmentFile=/opt/ellmos-stack/.env
+WorkingDirectory=/opt/ellmos-stack
+ExecStart=/opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/telegram_gateway.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
