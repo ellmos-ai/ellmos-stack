@@ -151,18 +151,30 @@ runner = OllamaRunner(model="qwen3:4b", think=False)
 result = runner.run("Summarize this text: ...")
 ```
 
+### 6. Desktop Document Analysis (NoteSpaceLLM)
+
+Use [NoteSpaceLLM](https://github.com/file-bricks/NoteSpaceLLM) as a desktop client for interactive document analysis, powered by the stack's Ollama instance:
+
+1. Install NoteSpaceLLM on your local machine
+2. Set up an Ollama auth proxy (see [Exposing Ollama](#exposing-ollama-for-remote-access) below)
+3. In NoteSpaceLLM: Menu > LLM > Settings > set your server URL and API key
+
+NoteSpaceLLM provides drag-and-drop document analysis, RAG-based chat, and multi-format report export -- all processed by the stack's LLM.
+
 ## Architecture
 
 The stack uses **Docker** for Ollama and n8n (stateful services with volumes), and **pip packages** for the Python components (Rinnsal, KnowledgeDigest). Background processing runs via cron.
 
 ```
-Port 5678 ──→ n8n (Docker)
-Port 8787 ──→ KnowledgeDigest Web Viewer (systemd)
-Port 11434 ─→ Ollama (Docker, localhost only)
+Port 5678  ──→ n8n (Docker)
+Port 8787  ──→ KnowledgeDigest Web Viewer (systemd)
+Port 11434 ──→ Ollama (Docker, localhost only)
+Port 11435 ──→ Ollama Auth Proxy (Nginx, optional, for remote clients)
 
 Cron:
   */5  min ──→ auto_ingest.py (index new documents)
   */15 min ──→ process_summaries.py (LLM summarization)
+  */5  min ──→ ollama-service health (auto-restart if down)
 ```
 
 Data is stored in `/opt/ellmos-stack/data/` (SQLite databases, document files).
@@ -177,6 +189,9 @@ OLLAMA_MODEL=mistral:7b
 
 # Pull the new model
 docker exec ollama ollama pull mistral:7b
+
+# For NoteSpaceLLM RAG embeddings, also pull an embedding model:
+docker exec ollama ollama pull nomic-embed-text
 
 # Restart summary processing (uses OLLAMA_MODEL from .env)
 ```
@@ -193,18 +208,64 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 Edit `config/system_prompt.txt` to adjust the LLM's personality, language, and behavior.
 
+## Exposing Ollama for Remote Access
+
+By default, Ollama only listens on localhost. To allow desktop clients (like NoteSpaceLLM) or other machines to use your stack's LLM, set up an Nginx reverse proxy with API key authentication:
+
+```bash
+# Install Nginx
+apt install nginx
+
+# Create proxy config
+cat > /etc/nginx/sites-available/ollama-proxy << 'EOF'
+server {
+    listen 11435;
+    server_name _;
+
+    location / {
+        if ($http_authorization != "Bearer YOUR_SECRET_API_KEY") {
+            return 401 "Unauthorized";
+        }
+        proxy_pass http://127.0.0.1:11434;
+        proxy_set_header Host $host;
+        proxy_read_timeout 300s;
+        proxy_buffering off;
+    }
+
+    # Unauthenticated health endpoint
+    location /health {
+        proxy_pass http://127.0.0.1:11434/api/tags;
+        proxy_read_timeout 5s;
+    }
+}
+EOF
+
+# Enable and start
+ln -sf /etc/nginx/sites-available/ollama-proxy /etc/nginx/sites-enabled/
+ufw allow 11435/tcp
+systemctl reload nginx
+```
+
+Generate a secure key: `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`
+
+Clients then connect to `http://your-server:11435` with the header `Authorization: Bearer YOUR_SECRET_API_KEY`.
+
 ## Security Notes
 
 - n8n is exposed on port 5678 with Basic Auth -- consider adding a reverse proxy with TLS for production
-- Ollama listens on localhost only (not exposed to the internet)
+- Ollama listens on localhost only by default (not exposed to the internet)
+- The optional Ollama proxy (port 11435) uses Bearer token authentication
 - All credentials are in `.env` (never committed to git)
-- KnowledgeDigest web viewer has no authentication -- restrict access via firewall or reverse proxy
+- KnowledgeDigest web viewer should be secured with a reverse proxy (e.g., Nginx Basic Auth on port 8788, block direct access to 8787 via firewall)
 
 ## Part of the ellmos ecosystem
 
-- [ellmos-ai/rinnsal](https://github.com/ellmos-ai/rinnsal) -- Lightweight AI memory & task management
-- [file-bricks/knowledgedigest](https://github.com/file-bricks/knowledgedigest) -- Document knowledge base
-- [research-line/research-agent](https://github.com/research-line/research-agent) -- Academic paper search
+| Component | Description |
+|-----------|-------------|
+| [ellmos-ai/rinnsal](https://github.com/ellmos-ai/rinnsal) | Lightweight AI memory & task management |
+| [file-bricks/knowledgedigest](https://github.com/file-bricks/knowledgedigest) | Document knowledge base with web UI |
+| [file-bricks/NoteSpaceLLM](https://github.com/file-bricks/NoteSpaceLLM) | Desktop document analysis & RAG chat (connects to stack's Ollama) |
+| [research-line/research-agent](https://github.com/research-line/research-agent) | Academic paper search & analysis |
 
 ## License
 
