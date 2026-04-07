@@ -1,5 +1,7 @@
 # ellmos-stack
 
+**🇩🇪 [Deutsche Version](README_de.md)**
+
 A self-hosted AI research and knowledge management stack. Combines a local LLM, workflow automation, persistent memory, and a knowledge base into one deployable setup.
 
 **Zero cloud dependencies.** Everything runs on your own server.
@@ -23,7 +25,7 @@ A self-hosted AI research and knowledge management stack. Combines a local LLM, 
 │  │  │  Memory + Tasks  │  │  Document Search + Web   │ │ │
 │  │  │  Ollama Runner   │  │  Auto-Indexing + Summary │ │ │
 │  │  └─────────────────┘  └──────────────────────────┘ │ │
-│  └────────────────────────────────────────────────────┘ │
+│  └────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -257,6 +259,19 @@ Clients then connect to `http://your-server:11435` with the header `Authorizatio
 - The optional Ollama proxy (port 11435) uses Bearer token authentication
 - All credentials are in `.env` (never committed to git)
 - KnowledgeDigest web viewer should be secured with a reverse proxy (e.g., Nginx Basic Auth on port 8788, block direct access to 8787 via firewall)
+
+## Stack Family
+
+ellmos-stack is the **all-in-one starter stack** — the reference implementation with everything included. Future specialized stacks will build on the same base components (Ollama + n8n + Rinnsal) with domain-specific extensions:
+
+| Stack | Focus | Components |
+|-------|-------|------------|
+| **ellmos-stack** (this repo) | All-in-one knowledge & research | Ollama + n8n + Rinnsal + KnowledgeDigest + Research Pipeline |
+| ellmos-research-stack | Academic research & literature | + PubMed/arXiv pipelines, bibliography tools, citation networks |
+| ellmos-dev-stack | Software development & DevOps | + Code analysis, CI/CD integration, repo monitoring |
+| ellmos-media-stack | Content creation & media | + Transcription, summarization pipelines, media processing |
+
+Each stack is a self-contained repo with its own `docker-compose.yml` and `install.sh`. They share the base infrastructure but add domain-specific tools and workflows.
 
 ## Part of the ellmos ecosystem
 
