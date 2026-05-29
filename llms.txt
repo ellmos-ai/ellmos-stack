@@ -1,0 +1,49 @@
+# ellmos-stack
+
+> Machine-readable project context for LLMs, crawlers, and agentic coding tools.
+
+## Canonical Links
+
+- Repository: https://github.com/ellmos-ai/ellmos-stack
+- Ecosystem: https://github.com/ellmos-ai
+- Rinnsal memory/task core: https://github.com/ellmos-ai/rinnsal
+- KnowledgeDigest document base: https://github.com/file-bricks/knowledgedigest
+- NoteSpaceLLM desktop client: https://github.com/file-bricks/NoteSpaceLLM
+
+## Summary
+
+ellmos-stack is a self-hosted AI research and knowledge-management stack. It combines Ollama for local LLM inference, n8n for workflow automation, Rinnsal for persistent AI memory/tasks, KnowledgeDigest for document ingestion/search, and included service scripts for research automation.
+
+The stack is designed for local-first deployment on Linux servers with Docker Compose and Python. The default model is `qwen3:4b`, but deployments can switch to other Ollama models through `.env`.
+
+## Primary Interfaces
+
+- `docker-compose.yml`: runs Ollama and n8n with persistent Docker volumes.
+- `install.sh`: installs the stack under `/opt/ellmos-stack`, creates a Python venv, starts services, and writes cron/systemd integration.
+- `services/auto_ingest.py`: indexes new KnowledgeDigest inbox files.
+- `services/process_summaries.py`: processes one summary queue item through the configured backend.
+- `services/research_pipeline.py`: searches papers, optionally analyzes them with Ollama, and can save reports to KnowledgeDigest.
+- `services/telegram_gateway.py`: optional owner-filtered Telegram gateway with Ollama fallback.
+
+## Configuration
+
+- `.env.example` documents runtime settings and secrets.
+- `config/system_prompt.txt` defines the default local assistant behavior.
+- `config/cron.example` shows the production cron schedule.
+
+Never commit a real `.env`, Telegram bot token, Anthropic key, n8n password, database, document inbox, archive, or generated log.
+
+## Safety Boundaries
+
+- Ollama is bound to localhost by default.
+- n8n is exposed on port `5678` with Basic Auth; production deployments should add TLS or a protected reverse proxy.
+- KnowledgeDigest should be protected behind a reverse proxy or firewall when deployed publicly.
+- The optional Ollama reverse proxy in the README requires a bearer token and should not expose the raw localhost Ollama port.
+
+## Validation
+
+Use the local smoke tests before committing:
+
+```bash
+PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v
+```

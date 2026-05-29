@@ -6,6 +6,8 @@ A self-hosted AI research and knowledge management stack. Combines a local LLM, 
 
 **Zero cloud dependencies.** Everything runs on your own server.
 
+Machine-readable context for LLMs and agentic coding tools: [`llms.txt`](llms.txt).
+
 ## What's inside
 
 ```

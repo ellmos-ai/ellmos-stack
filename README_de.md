@@ -6,6 +6,8 @@ Ein selbst gehosteter KI-Stack für Forschung und Wissensmanagement. Kombiniert 
 
 **Keine Cloud-Abhängigkeiten.** Alles läuft auf dem eigenen Server.
 
+Maschinenlesbarer Kontext für LLMs und Coding-Agenten: [`llms.txt`](llms.txt).
+
 ## Was steckt drin
 
 ```
