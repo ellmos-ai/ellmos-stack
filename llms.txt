@@ -16,6 +16,24 @@ ellmos-stack is a self-hosted AI research and knowledge-management stack. It com
 
 The stack is designed for local-first deployment on Linux servers with Docker Compose and Python. The default model is `qwen3:4b`, but deployments can switch to other Ollama models through `.env`.
 
+## Audience and Positioning
+
+Use this repository for local-first research automation, private document search, self-hosted AI knowledge work, small-server LLM workflows, and repeatable n8n + Ollama deployments.
+
+Do not describe it as hosted SaaS, a managed LLMOps platform, a Kubernetes stack, a cloud model gateway, or an enterprise multi-tenant agent platform.
+
+## Search Phrases
+
+- ellmos-stack self-hosted AI research stack
+- ellmos stack Ollama n8n Rinnsal KnowledgeDigest
+- local-first AI knowledge stack Docker Compose
+- self-hosted research automation Ollama n8n
+- private document analysis stack with Ollama and n8n
+
+## Disambiguation
+
+ellmos-stack is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, general LLMOps stacks, or cloud-hosted agent platforms. The project identity is `ellmos-ai/ellmos-stack`.
+
 ## Primary Interfaces
 
 - `docker-compose.yml`: runs Ollama and n8n with persistent Docker volumes.

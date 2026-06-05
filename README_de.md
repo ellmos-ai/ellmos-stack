@@ -8,6 +8,18 @@ Ein selbst gehosteter KI-Stack für Forschung und Wissensmanagement. Kombiniert 
 
 Maschinenlesbarer Kontext für LLMs und Coding-Agenten: [`llms.txt`](llms.txt).
 
+## Einstieg
+
+| Wenn du brauchst... | Starte mit | Warum |
+|---------------------|------------|-------|
+| Einen lokalen KI-Forschungsserver | [`install.sh`](install.sh) | Installiert Ollama, n8n, Rinnsal und KnowledgeDigest unter `/opt/ellmos-stack`. |
+| Workflow-Automatisierung mit lokalem Modell | [`docker-compose.yml`](docker-compose.yml) | Startet n8n und Ollama mit persistenten Volumes. |
+| Einen durchsuchbaren Dokumenten-Eingang | [`services/auto_ingest.py`](services/auto_ingest.py) | Übergibt neue Dokumente an die KnowledgeDigest-Indexierung. |
+| Paper-Suche und Zusammenfassungspipelines | [`services/research_pipeline.py`](services/research_pipeline.py) | Sucht Paper, fasst sie zusammen und kann Ergebnisse in der Wissensdatenbank speichern. |
+| Agenten-Memory und Task-Zustand | [ellmos-ai/rinnsal](https://github.com/ellmos-ai/rinnsal) | Stellt die Python-Schicht für Memory und Tasks bereit. |
+
+ellmos-stack ist ein **local-first KI-Stack für Forschungsautomatisierung und private Wissensarbeit**. Er ist kein gehostetes SaaS-Produkt, kein Cloud-LLM-Gateway und keine Kubernetes-Plattform.
+
 ## Was steckt drin
 
 ```
@@ -261,6 +273,17 @@ Clients verbinden sich dann mit `http://dein-server:11435` und dem Header `Autho
 - Der optionale Ollama-Proxy (Port 11435) nutzt Bearer-Token-Authentifizierung
 - Alle Zugangsdaten sind in `.env` (wird nie ins Git committed)
 - KnowledgeDigest Web-Viewer sollte mit einem Reverse-Proxy gesichert werden (z.B. Nginx Basic Auth auf Port 8788, direkten Zugriff auf 8787 per Firewall blockieren)
+
+## Suche und Abgrenzung
+
+Mit **ellmos-stack** ist der selbst gehostete lokale KI-Forschungsstack von `ellmos-ai` gemeint: Ollama für Inferenz, n8n für Workflow-Automatisierung, Rinnsal für Agenten-Memory und Tasks sowie KnowledgeDigest für Dokumentensuche. Sinnvolle Suchphrasen:
+
+- `ellmos-stack self-hosted AI research stack`
+- `ellmos stack Ollama n8n Rinnsal KnowledgeDigest`
+- `local-first AI knowledge stack Docker Compose`
+- `self-hosted research automation Ollama n8n`
+
+Das Projekt ist nicht mit Eclipse LMOS, Llama Stack, LLemonStack, allgemeinen LLMOps-Stacks oder cloud-gehosteten AI-Agent-Plattformen verbunden.
 
 ## Stack-Familie
 
