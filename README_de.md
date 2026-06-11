@@ -2,6 +2,8 @@
 
 **🇬🇧 [English Version](README.md)**
 
+[![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
+
 Ein selbst gehosteter KI-Stack für Forschung und Wissensmanagement. Kombiniert ein lokales LLM, Workflow-Automatisierung, persistenten Speicher und eine Wissensdatenbank in einem deploybaren Setup.
 
 **Keine Cloud-Abhängigkeiten.** Alles läuft auf dem eigenen Server.
@@ -58,6 +60,17 @@ ellmos-stack ist ein **local-first KI-Stack für Forschungsautomatisierung und p
 - **Festplatte:** ~5 GB für das Basis-Setup (Modell + Container)
 
 Getestet auf Hetzner CCX13 (2 vCPU, 8 GB RAM, ~18 EUR/Monat).
+
+## Validierung
+
+Das Repository enthält Smoke-Tests, die ohne Docker, Ollama, n8n, Telegram oder Live-Netzwerkdienste laufen:
+
+```bash
+PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v
+PYTHONIOENCODING=utf-8 python -m compileall -q services tests
+```
+
+GitHub Actions führt dieselbe Smoke-Suite mit Python 3.10, 3.11 und 3.12 aus.
 
 ## Schnellstart
 

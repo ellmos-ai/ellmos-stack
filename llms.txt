@@ -2,6 +2,8 @@
 
 > Machine-readable project context for LLMs, crawlers, and agentic coding tools.
 
+Last checked: 2026-06-11
+
 ## Canonical Links
 
 - Repository: https://github.com/ellmos-ai/ellmos-stack
@@ -60,8 +62,9 @@ Never commit a real `.env`, Telegram bot token, Anthropic key, n8n password, dat
 
 ## Validation
 
-Use the local smoke tests before committing:
+Use the local smoke tests before committing. GitHub Actions runs the same checks on Python 3.10, 3.11, and 3.12:
 
 ```bash
 PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v
+PYTHONIOENCODING=utf-8 python -m compileall -q services tests
 ```

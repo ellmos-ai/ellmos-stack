@@ -2,6 +2,8 @@
 
 **🇩🇪 [Deutsche Version](README_de.md)**
 
+[![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
+
 A self-hosted AI research and knowledge management stack. Combines a local LLM, workflow automation, persistent memory, and a knowledge base into one deployable setup.
 
 **Zero cloud dependencies.** Everything runs on your own server.
@@ -58,6 +60,17 @@ ellmos-stack is best read as a **local-first AI stack for research automation an
 - **Disk:** ~5 GB for base setup (model + containers)
 
 Tested on Hetzner CCX13 (2 vCPU, 8 GB RAM, ~18 EUR/month).
+
+## Validation
+
+The repository includes smoke tests that run without Docker, Ollama, n8n, Telegram, or live network services:
+
+```bash
+PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v
+PYTHONIOENCODING=utf-8 python -m compileall -q services tests
+```
+
+GitHub Actions runs the same smoke suite on Python 3.10, 3.11, and 3.12.
 
 ## Quickstart
 
