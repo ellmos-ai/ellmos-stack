@@ -49,6 +49,7 @@ flowchart TD
 | **[Rinnsal](https://github.com/ellmos-ai/rinnsal)** | Leichtgewichtiges Memory + Task-Management für KI-Agenten | pip |
 | **[KnowledgeDigest](https://github.com/file-bricks/knowledgedigest)** | Dokumenten-Ingestion, Chunking, Suche, Web-UI | pip |
 | **Research Pipeline** | Automatisierte Paper-Suche → Analyse → Speicherung | enthalten |
+| **Telegram Gateway** *(optional)* | Owner-gefilterter Telegram-Bot, antwortet über das lokale LLM | enthalten |
 
 ## Voraussetzungen
 
@@ -80,7 +81,7 @@ cd ellmos-stack
 sudo ./install.sh
 
 # Fertig. Die Dienste laufen:
-#   n8n:              http://deine-ip:5678
+#   n8n:              http://127.0.0.1:5678 (nur localhost -- siehe unten)
 #   KnowledgeDigest:  http://deine-ip:8787
 #   Ollama:           localhost:11434 (intern)
 ```
@@ -92,7 +93,13 @@ Der Installer:
 4. Installiert Python-Komponenten (Rinnsal, KnowledgeDigest)
 5. Erstellt einen systemd-Dienst für den KnowledgeDigest Web-Viewer
 6. Richtet Cron-Jobs für Auto-Indexierung und Hintergrund-Zusammenfassungen ein
-7. Generiert ein sicheres n8n-Passwort (gespeichert in `.env`)
+
+**Erster n8n-Start -- Owner-Account anlegen:** n8n 1.0+ hat kein Basic Auth mehr. Die Authentifizierung übernimmt der Owner-Account, der beim ersten Start in der Weboberfläche angelegt wird. Da der Port nur auf localhost gebunden ist, per SSH-Tunnel öffnen und das Setup abschließen, bevor irgendetwas freigegeben wird:
+
+```bash
+ssh -L 5678:127.0.0.1:5678 root@dein-server
+# dann http://localhost:5678 im lokalen Browser öffnen und den Owner-Account anlegen
+```
 
 ## Konfiguration
 
@@ -107,11 +114,15 @@ Wichtige Einstellungen:
 
 | Variable | Standard | Beschreibung |
 |----------|----------|--------------|
-| `N8N_PASSWORD` | *(generiert)* | n8n-Weboberflächen-Passwort |
 | `OLLAMA_MODEL` | `qwen3:4b` | Zu verwendendes LLM-Modell |
 | `OLLAMA_MEMORY_LIMIT` | `6G` | Max. RAM für Ollama |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama-Endpoint für die Service-Skripte |
+| `OLLAMA_IMAGE_TAG` | `latest` | Ollama-Docker-Image-Tag -- vor Produktivbetrieb pinnen |
+| `N8N_IMAGE_TAG` | `latest` | n8n-Docker-Image-Tag -- vor Produktivbetrieb pinnen |
 | `KD_PORT` | `8787` | KnowledgeDigest Web-UI Port |
 | `KD_SUMMARY_PROVIDER` | `ollama` | Zusammenfassungs-Backend: `ollama`, `anthropic` |
+
+**Image-Versionen für Produktion pinnen:** Die Compose-Datei nutzt für beide Docker-Images standardmäßig `latest` -- bequem zum Ausprobieren, aber nicht reproduzierbar und holt ggf. ungetestete Breaking Changes (n8n veröffentlicht regelmäßig Major-Releases). Vor Produktivbetrieb `OLLAMA_IMAGE_TAG` und `N8N_IMAGE_TAG` in der `.env` auf die konkret getesteten Versionen setzen.
 
 ## Anwendungsfälle
 
@@ -153,7 +164,7 @@ tasks.add("Review research results", priority="high")
 
 ### 4. Workflow-Automatisierung (n8n)
 
-Automatisierte Workflows mit n8n bauen unter `http://deine-ip:5678`:
+Automatisierte Workflows mit n8n bauen unter `http://localhost:5678` (per SSH-Tunnel, siehe Schnellstart):
 
 - **Geplante Forschung:** Cron → Research Pipeline → E-Mail-Digest
 - **Dokumentenverarbeitung:** Webhook → Download → KnowledgeDigest Inbox
@@ -187,12 +198,31 @@ result = runner.run("Fasse diesen Text zusammen: ...")
 
 NoteSpaceLLM bietet Drag-and-Drop-Dokumentenanalyse, RAG-basierten Chat und Multi-Format-Report-Export — alles verarbeitet durch das LLM des Stacks.
 
+### 7. Telegram Gateway (optional)
+
+`services/telegram_gateway.py` ist ein Owner-gefilterter Telegram-Bot: Nur die als Owner konfigurierte Chat-ID darf mit ihm sprechen. Eingehende Nachrichten beantwortet das lokale LLM des Stacks (mit optionalem Rinnsal-Memory-Kontext); ist eine `BACH_HEARTBEAT_URL` konfiguriert und erreichbar, werden Nachrichten stattdessen dorthin weitergeleitet. Nutzt ausschließlich die Python-Standardbibliothek.
+
+Einrichtung:
+
+```bash
+# 1. Bot-Token von @BotFather und Chat-ID von @userinfobot holen,
+#    dann RINNSAL_TELEGRAM_TOKEN und TELEGRAM_OWNER_CHAT_ID in .env setzen
+
+# 2. Verbindung testen
+/opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/telegram_gateway.py --test
+
+# 3. Als systemd-Dienst installieren (Unit-Datei liegt bei)
+cp /opt/ellmos-stack/config/telegram-gateway.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now telegram-gateway
+```
+
 ## Architektur
 
 Der Stack nutzt **Docker** für Ollama und n8n (zustandsbehaftete Dienste mit Volumes) und **pip-Pakete** für die Python-Komponenten (Rinnsal, KnowledgeDigest). Hintergrundverarbeitung läuft über Cron.
 
 ```
-Port 5678  ──→ n8n (Docker)
+Port 5678  ──→ n8n (Docker, nur localhost -- SSH-Tunnel oder Reverse-Proxy)
 Port 8787  ──→ KnowledgeDigest Web-Viewer (systemd)
 Port 11434 ──→ Ollama (Docker, nur localhost)
 Port 11435 ──→ Ollama Auth-Proxy (Nginx, optional, für Remote-Clients)
@@ -200,7 +230,6 @@ Port 11435 ──→ Ollama Auth-Proxy (Nginx, optional, für Remote-Clients)
 Cron:
   */5  Min ──→ auto_ingest.py (neue Dokumente indexieren)
   */15 Min ──→ process_summaries.py (LLM-Zusammenfassung)
-  */5  Min ──→ ollama-service Health (Auto-Neustart bei Ausfall)
 ```
 
 Daten werden in `/opt/ellmos-stack/data/` gespeichert (SQLite-Datenbanken, Dokumentdateien).
@@ -278,7 +307,8 @@ Clients verbinden sich dann mit `http://dein-server:11435` und dem Header `Autho
 
 ## Sicherheitshinweise
 
-- n8n ist auf Port 5678 mit Basic Auth erreichbar — für Produktion einen Reverse-Proxy mit TLS verwenden
+- n8n ist standardmäßig auf `127.0.0.1:5678` gebunden und von außen **nicht** erreichbar. n8n 1.0+ hat Basic Auth entfernt; die Authentifizierung übernimmt der n8n-Owner-Account, der beim ersten Start in der Weboberfläche angelegt werden muss (per SSH-Tunnel, siehe Schnellstart). **Niemals eine n8n-Instanz freigeben, bevor der Owner-Account existiert** — sonst wird der erste Besucher zum Owner.
+- Um n8n bewusst von außen erreichbar zu machen: entweder das localhost-Binding behalten und einen TLS-Reverse-Proxy (Nginx/Caddy) vor `127.0.0.1:5678` setzen, oder das Port-Mapping in `docker-compose.yml` auf `"0.0.0.0:5678:5678"` ändern und per Firewall schützen — erst nachdem der Owner-Account eingerichtet ist
 - Ollama hört standardmäßig nur auf localhost (nicht aus dem Internet erreichbar)
 - Der optionale Ollama-Proxy (Port 11435) nutzt Bearer-Token-Authentifizierung
 - Alle Zugangsdaten sind in `.env` (wird nie ins Git committed)

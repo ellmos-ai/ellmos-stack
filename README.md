@@ -49,6 +49,7 @@ flowchart TD
 | **[Rinnsal](https://github.com/ellmos-ai/rinnsal)** | Lightweight memory + task management for AI agents | pip |
 | **[KnowledgeDigest](https://github.com/file-bricks/knowledgedigest)** | Document ingestion, chunking, search, web UI | pip |
 | **Research Pipeline** | Automated paper search → analysis → storage | included |
+| **Telegram Gateway** *(optional)* | Owner-filtered Telegram bot answering via the local LLM | included |
 
 ## Requirements
 
@@ -80,7 +81,7 @@ cd ellmos-stack
 sudo ./install.sh
 
 # That's it. Services are running:
-#   n8n:              http://your-ip:5678
+#   n8n:              http://127.0.0.1:5678 (localhost only -- see below)
 #   KnowledgeDigest:  http://your-ip:8787
 #   Ollama:           localhost:11434 (internal)
 ```
@@ -92,7 +93,13 @@ The installer:
 4. Installs Python components (Rinnsal, KnowledgeDigest)
 5. Creates systemd service for KnowledgeDigest web viewer
 6. Sets up cron jobs for auto-indexing and background summarization
-7. Generates a secure n8n password (saved in `.env`)
+
+**First n8n start -- create the owner account:** n8n 1.0+ has no Basic Auth. Authentication is handled by the owner account that you create in the web UI on first start. Because the port is bound to localhost, open it through an SSH tunnel and complete the setup before exposing anything:
+
+```bash
+ssh -L 5678:127.0.0.1:5678 root@your-server
+# then open http://localhost:5678 in your local browser and create the owner account
+```
 
 ## Configuration
 
@@ -107,11 +114,15 @@ Key settings:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `N8N_PASSWORD` | *(generated)* | n8n web interface password |
 | `OLLAMA_MODEL` | `qwen3:4b` | LLM model to use |
 | `OLLAMA_MEMORY_LIMIT` | `6G` | Max RAM for Ollama |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama endpoint used by the service scripts |
+| `OLLAMA_IMAGE_TAG` | `latest` | Ollama Docker image tag -- pin before production use |
+| `N8N_IMAGE_TAG` | `latest` | n8n Docker image tag -- pin before production use |
 | `KD_PORT` | `8787` | KnowledgeDigest web UI port |
 | `KD_SUMMARY_PROVIDER` | `ollama` | Summary backend: `ollama`, `anthropic` |
+
+**Pin image versions for production:** the compose file defaults both Docker images to `latest`, which is convenient for evaluation but not reproducible and may pull untested breaking changes (n8n ships major releases regularly). Before production use, set `OLLAMA_IMAGE_TAG` and `N8N_IMAGE_TAG` in `.env` to the concrete versions you have tested.
 
 ## Use Cases
 
@@ -153,7 +164,7 @@ tasks.add("Review research results", priority="high")
 
 ### 4. Workflow Automation (n8n)
 
-Build automated workflows with n8n at `http://your-ip:5678`:
+Build automated workflows with n8n at `http://localhost:5678` (via SSH tunnel, see Quickstart):
 
 - **Scheduled research:** Cron → Research Pipeline → Email digest
 - **Document processing:** Webhook → Download → KnowledgeDigest inbox
@@ -187,12 +198,31 @@ Use [NoteSpaceLLM](https://github.com/file-bricks/NoteSpaceLLM) as a desktop cli
 
 NoteSpaceLLM provides drag-and-drop document analysis, RAG-based chat, and multi-format report export -- all processed by the stack's LLM.
 
+### 7. Telegram Gateway (optional)
+
+`services/telegram_gateway.py` is an owner-filtered Telegram bot: only the chat ID configured as owner may talk to it. Incoming messages are answered by the stack's local LLM (with optional Rinnsal memory context); if a `BACH_HEARTBEAT_URL` is configured and reachable, messages are forwarded there instead. Uses only the Python stdlib.
+
+Setup:
+
+```bash
+# 1. Get a bot token from @BotFather and your chat ID from @userinfobot,
+#    then set RINNSAL_TELEGRAM_TOKEN and TELEGRAM_OWNER_CHAT_ID in .env
+
+# 2. Test the connection
+/opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/telegram_gateway.py --test
+
+# 3. Install as systemd service (unit file is included)
+cp /opt/ellmos-stack/config/telegram-gateway.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now telegram-gateway
+```
+
 ## Architecture
 
 The stack uses **Docker** for Ollama and n8n (stateful services with volumes), and **pip packages** for the Python components (Rinnsal, KnowledgeDigest). Background processing runs via cron.
 
 ```
-Port 5678  ──→ n8n (Docker)
+Port 5678  ──→ n8n (Docker, localhost only -- SSH tunnel or reverse proxy)
 Port 8787  ──→ KnowledgeDigest Web Viewer (systemd)
 Port 11434 ──→ Ollama (Docker, localhost only)
 Port 11435 ──→ Ollama Auth Proxy (Nginx, optional, for remote clients)
@@ -200,7 +230,6 @@ Port 11435 ──→ Ollama Auth Proxy (Nginx, optional, for remote clients)
 Cron:
   */5  min ──→ auto_ingest.py (index new documents)
   */15 min ──→ process_summaries.py (LLM summarization)
-  */5  min ──→ ollama-service health (auto-restart if down)
 ```
 
 Data is stored in `/opt/ellmos-stack/data/` (SQLite databases, document files).
@@ -278,7 +307,8 @@ Clients then connect to `http://your-server:11435` with the header `Authorizatio
 
 ## Security Notes
 
-- n8n is exposed on port 5678 with Basic Auth -- consider adding a reverse proxy with TLS for production
+- n8n is bound to `127.0.0.1:5678` by default and is **not** reachable from outside. n8n 1.0+ removed Basic Auth; authentication is handled by the n8n owner account, which you must create in the web UI on first start (via SSH tunnel, see Quickstart). **Never expose an n8n instance before the owner account exists** -- the first visitor would become the owner.
+- To deliberately make n8n reachable from outside, either keep the localhost binding and put a TLS reverse proxy (Nginx/Caddy) in front of `127.0.0.1:5678`, or change the port mapping in `docker-compose.yml` to `"0.0.0.0:5678:5678"` and protect it with a firewall -- only after the owner account is set up
 - Ollama listens on localhost only by default (not exposed to the internet)
 - The optional Ollama proxy (port 11435) uses Bearer token authentication
 - All credentials are in `.env` (never committed to git)

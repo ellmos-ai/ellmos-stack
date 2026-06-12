@@ -54,12 +54,13 @@ ellmos-stack is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, generic n8n
 - `config/system_prompt.txt` defines the default local assistant behavior.
 - `config/cron.example` shows the production cron schedule.
 
-Never commit a real `.env`, Telegram bot token, Anthropic key, n8n password, database, document inbox, archive, or generated log.
+Never commit a real `.env`, Telegram bot token, Anthropic key, database, document inbox, archive, or generated log.
 
 ## Safety Boundaries
 
 - Ollama is bound to localhost by default.
-- n8n is exposed on port `5678` with Basic Auth; production deployments should add TLS or a protected reverse proxy.
+- n8n is bound to `127.0.0.1:5678` by default; access it via SSH tunnel or a TLS reverse proxy. n8n 1.0+ has no Basic Auth -- authentication is the n8n owner account, which must be created in the web UI on first start before the instance is ever exposed.
+- Docker image tags default to `latest`; pin `OLLAMA_IMAGE_TAG` and `N8N_IMAGE_TAG` in `.env` before production use.
 - KnowledgeDigest should be protected behind a reverse proxy or firewall when deployed publicly.
 - The optional Ollama reverse proxy in the README requires a bearer token and should not expose the raw localhost Ollama port.
 
