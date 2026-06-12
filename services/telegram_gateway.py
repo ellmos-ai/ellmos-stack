@@ -358,7 +358,7 @@ def poll_loop():
 def main():
     if not BOT_TOKEN:
         print("FEHLER: RINNSAL_TELEGRAM_TOKEN nicht gesetzt!", file=sys.stderr)
-        print("  export RINNSAL_TELEGRAM_TOKEN='123456:ABC-DEF...'")
+        print("  Setze RINNSAL_TELEGRAM_TOKEN in deiner Shell; siehe .env.example.")
         sys.exit(1)
 
     if "--test" in sys.argv:

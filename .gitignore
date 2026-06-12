@@ -5,6 +5,7 @@
 *.secret
 
 # Runtime
+data/
 *.db
 *.log
 __pycache__/
