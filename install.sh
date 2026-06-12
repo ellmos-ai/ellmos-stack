@@ -1,7 +1,7 @@
 #!/bin/bash
 # ellmos-stack Installer
 # Tested on: Ubuntu 22.04+, Debian 12+
-# Usage: ./install.sh [--install-dir /opt/ellmos-stack]
+# Usage: ./install.sh [INSTALL_DIR]   (default: /opt/ellmos-stack)
 set -euo pipefail
 
 # === Configuration ===
@@ -27,8 +27,14 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker compose &> /dev/null; then
-    echo "[ERROR] Docker Compose not found (docker compose v2 required)"
+# Detect Docker Compose: v2 plugin ("docker compose") or v1 binary ("docker-compose")
+if docker compose version > /dev/null 2>&1; then
+    COMPOSE="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    COMPOSE="docker-compose"
+else
+    echo "[ERROR] Docker Compose not found. Install the Compose v2 plugin:"
+    echo "  apt-get install docker-compose-plugin"
     exit 1
 fi
 
@@ -53,11 +59,7 @@ chmod +x "$INSTALL_DIR/services/"*.py
 # === .env ===
 if [ ! -f "$INSTALL_DIR/.env" ]; then
     cp "$SCRIPT_DIR/.env.example" "$INSTALL_DIR/.env"
-    # Generate random n8n password
-    N8N_PW=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
-    sed -i "s/CHANGE_ME_TO_A_SECURE_PASSWORD/$N8N_PW/" "$INSTALL_DIR/.env"
-    echo "[INFO] Generated n8n password: $N8N_PW"
-    echo "[INFO] Saved in $INSTALL_DIR/.env -- keep this safe!"
+    echo "[INFO] Created $INSTALL_DIR/.env from .env.example -- review the settings"
 else
     echo "[INFO] .env already exists, keeping it"
 fi
@@ -84,7 +86,7 @@ echo "  Installing ResearchAgent..."
 # === Docker services ===
 echo "[5/7] Starting Docker services..."
 cd "$INSTALL_DIR"
-docker compose up -d
+$COMPOSE up -d
 
 # Wait for Ollama to be ready
 echo "  Waiting for Ollama..."
@@ -136,7 +138,8 @@ PYTHONIOENCODING=utf-8
 */5 * * * * root cd $DATA_DIR/knowledgedigest && $VENV_DIR/bin/python $INSTALL_DIR/services/auto_ingest.py >> /var/log/ellmos-stack-ingest.log 2>&1
 
 # Process 1 summary queue item every 15 minutes via Ollama
-*/15 * * * * root cd $DATA_DIR/knowledgedigest && $VENV_DIR/bin/python $INSTALL_DIR/services/process_summaries.py >> /var/log/ellmos-stack-summaries.log 2>&1
+# Cron does not inherit .env -- source it so provider/model settings apply
+*/15 * * * * root set -a; . $INSTALL_DIR/.env; set +a; cd $DATA_DIR/knowledgedigest && $VENV_DIR/bin/python $INSTALL_DIR/services/process_summaries.py >> /var/log/ellmos-stack-summaries.log 2>&1
 EOF
 
 # === Done ===
@@ -146,11 +149,16 @@ echo "  ellmos-stack installed successfully!"
 echo "============================================="
 echo ""
 echo "Services:"
-echo "  n8n:              http://$(hostname -I | awk '{print $1}'):5678"
+echo "  n8n:              http://127.0.0.1:5678 (localhost only -- use an SSH tunnel:"
+echo "                    ssh -L 5678:127.0.0.1:5678 root@your-server)"
 echo "  KnowledgeDigest:  http://$(hostname -I | awk '{print $1}'):$KD_PORT"
 echo "  Ollama:           http://localhost:11434 (local only)"
 echo ""
-echo "Credentials:"
+echo "IMPORTANT: Open n8n via the SSH tunnel and create the owner account"
+echo "           BEFORE exposing the port publicly (n8n >= 1.0 has no Basic Auth;"
+echo "           the first visitor becomes the owner)."
+echo ""
+echo "Configuration:"
 echo "  Stored in: $INSTALL_DIR/.env"
 echo ""
 echo "Data directories:"

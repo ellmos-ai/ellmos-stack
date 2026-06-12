@@ -9,4 +9,5 @@ PYTHONIOENCODING=utf-8
 */5 * * * * root cd /opt/ellmos-stack/data/knowledgedigest && /opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/auto_ingest.py >> /var/log/ellmos-stack-ingest.log 2>&1
 
 # KnowledgeDigest: Process 1 summary queue item every 15 minutes via Ollama
-*/15 * * * * root cd /opt/ellmos-stack/data/knowledgedigest && /opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/process_summaries.py >> /var/log/ellmos-stack-summaries.log 2>&1
+# Cron does not inherit .env -- source it so provider/model settings apply
+*/15 * * * * root set -a; . /opt/ellmos-stack/.env; set +a; cd /opt/ellmos-stack/data/knowledgedigest && /opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/process_summaries.py >> /var/log/ellmos-stack-summaries.log 2>&1
