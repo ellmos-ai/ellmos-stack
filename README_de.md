@@ -26,25 +26,20 @@ Wichtige Suchanker: `ellmos-stack`, `self-hosted AI research stack`, `Ollama n8n
 
 ## Was steckt drin
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    ellmos-stack                          │
-│                                                         │
-│  ┌──────────┐  ┌──────────┐  ┌───────────────────────┐ │
-│  │  Ollama   │  │   n8n    │  │  Research Pipeline    │ │
-│  │ Lokales  │  │ Workflow │  │ PubMed/arXiv → Ollama │ │
-│  │   LLM    │  │  Engine  │  │    → KnowledgeDigest  │ │
-│  └────┬─────┘  └────┬─────┘  └───────────┬───────────┘ │
-│       │              │                     │             │
-│  ┌────┴──────────────┴─────────────────────┴──────────┐ │
-│  │              Gemeinsame Dienste                      │ │
-│  │  ┌─────────────────┐  ┌──────────────────────────┐ │ │
-│  │  │    Rinnsal       │  │   KnowledgeDigest        │ │ │
-│  │  │  Memory + Tasks  │  │  Dokumentensuche + Web   │ │ │
-│  │  │  Ollama Runner   │  │  Auto-Indexierung        │ │ │
-│  │  └─────────────────┘  └──────────────────────────┘ │ │
-│  └────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+  subgraph STACK["ellmos-stack"]
+    OLLAMA["Ollama<br/>Lokales LLM (qwen3)"]
+    N8N["n8n<br/>Workflow Engine"]
+    RESEARCH["Research Pipeline<br/>PubMed/arXiv → Ollama → KnowledgeDigest"]
+    subgraph SHARED["Gemeinsame Dienste"]
+      RIN["Rinnsal<br/>Memory + Tasks · Ollama Runner"]
+      KD["KnowledgeDigest<br/>Dokumentensuche + Web · Auto-Indexierung"]
+    end
+  end
+  OLLAMA --- SHARED
+  N8N --- SHARED
+  RESEARCH --- SHARED
 ```
 
 | Komponente | Rolle | Quelle |
