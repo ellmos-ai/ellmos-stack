@@ -1,6 +1,7 @@
 services:
   ollama:
-    image: ollama/ollama:latest
+    # Pin to a tested version via OLLAMA_IMAGE_TAG in .env before production use
+    image: ollama/ollama:${OLLAMA_IMAGE_TAG:-latest}
     container_name: ollama
     restart: unless-stopped
     ports:
@@ -17,11 +18,15 @@ services:
           memory: ${OLLAMA_MEMORY_LIMIT:-6G}
 
   n8n:
-    image: n8nio/n8n:latest
+    # Pin to a tested version via N8N_IMAGE_TAG in .env before production use
+    image: n8nio/n8n:${N8N_IMAGE_TAG:-latest}
     container_name: n8n
     restart: unless-stopped
+    # Bound to localhost by default: access via SSH tunnel or put a TLS
+    # reverse proxy in front. n8n >= 1.0 has no Basic Auth; the first visitor
+    # of an unprotected instance becomes the owner. See README "Security Notes".
     ports:
-      - "0.0.0.0:5678:5678"
+      - "127.0.0.1:5678:5678"
     volumes:
       - n8n_data:/home/node/.n8n
     environment:
@@ -30,9 +35,6 @@ services:
       - N8N_PROTOCOL=http
       - GENERIC_TIMEZONE=${TZ:-Europe/Berlin}
       - TZ=${TZ:-Europe/Berlin}
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
-      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:?Set N8N_PASSWORD in .env}
       - N8N_SECURE_COOKIE=false
     depends_on:
       - ollama
