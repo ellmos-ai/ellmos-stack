@@ -22,6 +22,8 @@ Machine-readable context for LLMs and agentic coding tools: [`llms.txt`](llms.tx
 
 ellmos-stack is best read as a **local-first AI stack for research automation and private knowledge work**. It is not a hosted SaaS product, not a cloud LLM gateway, and not a Kubernetes platform.
 
+Common discovery anchors: `ellmos-stack`, `self-hosted AI research stack`, `Ollama n8n KnowledgeDigest`, `private local RAG server`, and `Docker Compose AI knowledge base`.
+
 ## What's inside
 
 ```
@@ -295,8 +297,11 @@ Use **ellmos-stack** when you mean the self-hosted local AI research stack from 
 - `ellmos stack Ollama n8n Rinnsal KnowledgeDigest`
 - `local-first AI knowledge stack Docker Compose`
 - `self-hosted research automation Ollama n8n`
+- `private local RAG server with Ollama and n8n`
+- `Docker Compose AI knowledge base with document search`
+- `self-hosted AI starter stack for research workflows`
 
-The project is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, general LLMOps stacks, or cloud-hosted AI agent platforms.
+The project is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, generic n8n AI starter kits, Open WebUI-only deployments, general LLMOps stacks, or cloud-hosted AI agent platforms. Use the canonical repo path `ellmos-ai/ellmos-stack` when disambiguating search results.
 
 ## Stack Family
 

@@ -2,7 +2,7 @@
 
 > Machine-readable project context for LLMs, crawlers, and agentic coding tools.
 
-Last checked: 2026-06-11
+Last checked: 2026-06-12
 
 ## Canonical Links
 
@@ -31,10 +31,13 @@ Do not describe it as hosted SaaS, a managed LLMOps platform, a Kubernetes stack
 - local-first AI knowledge stack Docker Compose
 - self-hosted research automation Ollama n8n
 - private document analysis stack with Ollama and n8n
+- private local RAG server with Ollama and n8n
+- Docker Compose AI knowledge base with document search
+- self-hosted AI starter stack for research workflows
 
 ## Disambiguation
 
-ellmos-stack is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, general LLMOps stacks, or cloud-hosted agent platforms. The project identity is `ellmos-ai/ellmos-stack`.
+ellmos-stack is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, generic n8n AI starter kits, Open WebUI-only deployments, general LLMOps stacks, or cloud-hosted agent platforms. The project identity is `ellmos-ai/ellmos-stack`.
 
 ## Primary Interfaces
 

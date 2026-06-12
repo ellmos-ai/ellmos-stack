@@ -22,6 +22,8 @@ Maschinenlesbarer Kontext für LLMs und Coding-Agenten: [`llms.txt`](llms.txt).
 
 ellmos-stack ist ein **local-first KI-Stack für Forschungsautomatisierung und private Wissensarbeit**. Er ist kein gehostetes SaaS-Produkt, kein Cloud-LLM-Gateway und keine Kubernetes-Plattform.
 
+Wichtige Suchanker: `ellmos-stack`, `self-hosted AI research stack`, `Ollama n8n KnowledgeDigest`, `private local RAG server` und `Docker Compose AI knowledge base`.
+
 ## Was steckt drin
 
 ```
@@ -295,8 +297,11 @@ Mit **ellmos-stack** ist der selbst gehostete lokale KI-Forschungsstack von `ell
 - `ellmos stack Ollama n8n Rinnsal KnowledgeDigest`
 - `local-first AI knowledge stack Docker Compose`
 - `self-hosted research automation Ollama n8n`
+- `private local RAG server with Ollama and n8n`
+- `Docker Compose AI knowledge base with document search`
+- `self-hosted AI starter stack for research workflows`
 
-Das Projekt ist nicht mit Eclipse LMOS, Llama Stack, LLemonStack, allgemeinen LLMOps-Stacks oder cloud-gehosteten AI-Agent-Plattformen verbunden.
+Das Projekt ist nicht mit Eclipse LMOS, Llama Stack, LLemonStack, generischen n8n-AI-Starter-Kits, reinen Open-WebUI-Deployments, allgemeinen LLMOps-Stacks oder cloud-gehosteten AI-Agent-Plattformen verbunden. Für eindeutige Suchergebnisse sollte der kanonische Repo-Pfad `ellmos-ai/ellmos-stack` verwendet werden.
 
 ## Stack-Familie
 
