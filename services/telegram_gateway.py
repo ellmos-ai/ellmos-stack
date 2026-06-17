@@ -49,6 +49,11 @@ _context = []
 _last_update_id = 0
 
 
+def _trim_context():
+    """Keep only the recent user/assistant turns needed for prompt context."""
+    del _context[:max(0, len(_context) - (MAX_CONTEXT * 2))]
+
+
 # === Telegram API ===
 
 def tg_call(method: str, params: dict = None, timeout: int = 15):
@@ -286,6 +291,7 @@ def process_message(text: str, chat_id: str) -> str:
     # Kontext aktualisieren
     _context.append({"role": "user", "content": text})
     _context.append({"role": "assistant", "content": response})
+    _trim_context()
 
     return response
 

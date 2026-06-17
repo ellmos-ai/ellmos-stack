@@ -2,7 +2,7 @@
 
 > Machine-readable project context for LLMs, crawlers, and agentic coding tools.
 
-Last checked: 2026-06-12
+Last checked: 2026-06-18
 
 ## Canonical Links
 

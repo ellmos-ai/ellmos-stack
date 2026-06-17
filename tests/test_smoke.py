@@ -147,6 +147,14 @@ class TestConfigFiles(unittest.TestCase):
     def test_readme_exists(self):
         self.assertTrue((REPO_ROOT / "README.md").exists())
 
+    def test_gitignore_ignores_pytest_cache(self):
+        gitignore = (REPO_ROOT / ".gitignore").read_text(encoding="utf-8")
+        self.assertIn(".pytest_cache/", gitignore)
+
+    def test_install_script_reads_exact_kd_port_assignment(self):
+        install_script = (REPO_ROOT / "install.sh").read_text(encoding="utf-8")
+        self.assertIn("grep -E '^KD_PORT='", install_script)
+
 
 class TestServiceModuleDefaults(unittest.TestCase):
     """
@@ -213,6 +221,22 @@ class TestTelegramGatewayImport(unittest.TestCase):
         self.assertIn("BOT_TOKEN", top_level_names)
         self.assertIn("OWNER_CHAT_ID", top_level_names)
         self.assertIn("OLLAMA_URL", top_level_names)
+
+    def test_telegram_gateway_trims_context(self):
+        """The in-memory Telegram context should not grow without bound."""
+        spec = importlib.util.spec_from_file_location(
+            "telegram_gateway_context_test",
+            SERVICES_DIR / "telegram_gateway.py",
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        module._context.extend(
+            {"role": "user", "content": f"message {index}"}
+            for index in range((module.MAX_CONTEXT * 2) + 5)
+        )
+        module._trim_context()
+        self.assertEqual(len(module._context), module.MAX_CONTEXT * 2)
+        self.assertEqual(module._context[0]["content"], "message 5")
 
 
 if __name__ == "__main__":

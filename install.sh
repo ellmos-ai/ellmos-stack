@@ -105,7 +105,7 @@ docker exec ollama ollama pull "$MODEL"
 
 # === KnowledgeDigest Web Viewer ===
 echo "[6/7] Starting KnowledgeDigest web viewer..."
-KD_PORT=$(grep KD_PORT "$INSTALL_DIR/.env" 2>/dev/null | cut -d= -f2 || echo 8787)
+KD_PORT=$(grep -E '^KD_PORT=' "$INSTALL_DIR/.env" 2>/dev/null | tail -n 1 | cut -d= -f2- || echo 8787)
 KD_PORT="${KD_PORT:-8787}"
 
 cat > /etc/systemd/system/knowledgedigest.service << EOF

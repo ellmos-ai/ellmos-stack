@@ -9,6 +9,7 @@ data/
 *.db
 *.log
 __pycache__/
+.pytest_cache/
 *.pyc
 venv/
 .venv/
