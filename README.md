@@ -330,16 +330,22 @@ The project is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, generic n8n 
 
 ## Stack Family
 
-ellmos-stack is the **all-in-one starter stack** — the reference implementation with everything included. Future specialized stacks will build on the same base components (Ollama + n8n + Rinnsal) with domain-specific extensions:
+> **Canonical catalog:** the full, up-to-date list of all ellmos stacks lives in
+> **[ellmos-ai/stacks](https://github.com/ellmos-ai/stacks)** — the stacks overview repo
+> (catalog, shared manifest schema, "what is a stack" docs). The table below is a
+> convenience excerpt; when in doubt, the catalog wins.
+
+ellmos-stack is the **all-in-one starter stack** — the reference implementation with everything included. Sibling stacks build on shared principles with domain-specific focus:
 
 | Stack | Focus | Components |
 |-------|-------|------------|
 | **ellmos-stack** (this repo) | All-in-one knowledge & research | Ollama + n8n + Rinnsal + KnowledgeDigest + Research Pipeline |
-| ellmos-research-stack | Academic research & literature | + PubMed/arXiv pipelines, bibliography tools, citation networks |
-| ellmos-dev-stack | Software development & DevOps | + Code analysis, CI/CD integration, repo monitoring |
-| ellmos-media-stack | Content creation & media | + Transcription, summarization pipelines, media processing |
+| [agent-ops-stack](https://github.com/ellmos-ai/agent-ops-stack) | Multi-agent operations (locks, tickets, decision avatar, memory) | ticket-master + lock-master + build-your-users-mind + skills + controlcenter-mcp + homebase-mcp |
+| ellmos-research-stack (planned) | Academic research & literature | + PubMed/arXiv pipelines, bibliography tools, citation networks |
+| ellmos-dev-stack (planned) | Software development & DevOps | + Code analysis, CI/CD integration, repo monitoring |
+| ellmos-media-stack (planned) | Content creation & media | + Transcription, summarization pipelines, media processing |
 
-Each stack is a self-contained repo with its own `docker-compose.yml` and `install.sh`. They share the base infrastructure but add domain-specific tools and workflows.
+Each stack is a self-contained repo with its own manifest and `install.sh`. They share the composition principle ("installation IS the blueprint") but add domain-specific tools and workflows.
 
 ## Part of the ellmos ecosystem
 
