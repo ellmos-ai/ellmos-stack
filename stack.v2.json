@@ -1,0 +1,25 @@
+{
+  "schema": "ellmos.stack.v2",
+  "id": "ellmos-stack",
+  "status": "active",
+  "visibility": "public",
+  "components": [
+    {"id": "KnowledgeDigest", "role": "knowledge.search.default"}
+  ],
+  "required_roles": ["knowledge.search.default"],
+  "skills": [],
+  "mcp_servers": [],
+  "nested_stacks": [],
+  "external_components": [
+    {"id": "ollama", "kind": "model-runtime", "role": "local-inference", "source": "docker"},
+    {"id": "n8n", "kind": "workflow-engine", "role": "automation", "source": "docker"},
+    {"id": "rinnsal", "kind": "legacy-runtime", "role": "memory-and-tasks", "source": "pip"},
+    {"id": "research-pipeline", "kind": "included-service", "role": "research", "source": "repository"}
+  ],
+  "policies": {
+    "network": "declared",
+    "platforms": ["linux"],
+    "max_data_sensitivity": "user-local",
+    "local_first": true
+  }
+}
