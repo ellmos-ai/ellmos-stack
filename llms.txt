@@ -70,5 +70,8 @@ Use the local smoke tests before committing. GitHub Actions runs the same checks
 
 ```bash
 PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v
-PYTHONIOENCODING=utf-8 python -m compileall -q services tests
+PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
+PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
+
+This is the offline preflight only. `RELEASE_GATE.md` and `.github/workflows/release-gate.yml` define the public stack release gate with exact image tags, Linux Docker Compose evidence, local bindings, and the owner-account/TLS/firewall review. Do not infer release readiness from the unit suite alone.

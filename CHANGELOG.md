@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a public-stack release gate with static repository/security checks, mandatory image pinning, and a manual Linux Docker Compose evidence workflow.
 - Added bounded Telegram gateway context handling so long-running polling sessions keep only recent user/assistant turns.
 - Hardened `install.sh` so `KD_PORT` is read only from an exact `.env` assignment.
 - Ignored local `.pytest_cache/` artifacts and covered both hygiene rules in smoke tests.

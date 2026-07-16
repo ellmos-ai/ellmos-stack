@@ -155,6 +155,15 @@ class TestConfigFiles(unittest.TestCase):
         install_script = (REPO_ROOT / "install.sh").read_text(encoding="utf-8")
         self.assertIn("grep -E '^KD_PORT='", install_script)
 
+    def test_release_gate_surfaces_exist(self):
+        self.assertTrue((REPO_ROOT / "RELEASE_GATE.md").exists())
+        self.assertTrue((REPO_ROOT / "tools" / "check_release_gate.py").exists())
+        self.assertTrue((REPO_ROOT / ".github" / "workflows" / "release-gate.yml").exists())
+
+    def test_release_evidence_is_ignored(self):
+        gitignore = (REPO_ROOT / ".gitignore").read_text(encoding="utf-8")
+        self.assertIn(".release-gate/", gitignore)
+
 
 class TestServiceModuleDefaults(unittest.TestCase):
     """

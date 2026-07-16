@@ -65,8 +65,11 @@ Das Repository enthält Smoke-Tests, die ohne Docker, Ollama, n8n, Telegram oder
 
 ```bash
 PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v
-PYTHONIOENCODING=utf-8 python -m compileall -q services tests
+PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
+PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
+
+Diese Prüfungen sind ein Offline-Preflight und kein Linux-Deployment-Nachweis. Öffentliche Releases verwenden das getrennte [Stack-Release-Gate](RELEASE_GATE.md): exakte Container-Tags, einen echten Linux-Docker-Compose-Start mit Probes, Localhost-Bindings sowie eine Owner-Account-/TLS-/Firewall-Prüfung. Gleitende `latest`-Tags scheitern dort.
 
 GitHub Actions führt dieselbe Smoke-Suite mit Python 3.10, 3.11 und 3.12 aus.
 

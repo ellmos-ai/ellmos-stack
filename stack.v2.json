@@ -16,6 +16,12 @@
     {"id": "rinnsal", "kind": "legacy-runtime", "role": "memory-and-tasks", "source": "pip"},
     {"id": "research-pipeline", "kind": "included-service", "role": "research", "source": "repository"}
   ],
+  "release_gate": {
+    "document": "RELEASE_GATE.md",
+    "workflow": ".github/workflows/release-gate.yml",
+    "evidence": "linux-docker-compose",
+    "requires_pinned_images": true
+  },
   "policies": {
     "network": "declared",
     "platforms": ["linux"],

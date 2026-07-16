@@ -65,10 +65,13 @@ The repository includes smoke tests that run without Docker, Ollama, n8n, Telegr
 
 ```bash
 PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v
-PYTHONIOENCODING=utf-8 python -m compileall -q services tests
+PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
+PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
 
 GitHub Actions runs the same smoke suite on Python 3.10, 3.11, and 3.12.
+
+These checks are an offline preflight, not a Linux deployment claim. Public releases use the separate [stack release gate](RELEASE_GATE.md): exact container tags, a real Linux Docker Compose startup/probe, localhost-binding checks, and an owner-account/TLS/firewall review. Floating `latest` tags fail that release gate.
 
 ## Quickstart
 
