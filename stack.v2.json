@@ -13,8 +13,10 @@
   "external_components": [
     {"id": "ollama", "kind": "model-runtime", "role": "local-inference", "source": "docker"},
     {"id": "n8n", "kind": "workflow-engine", "role": "automation", "source": "docker"},
-    {"id": "rinnsal", "kind": "legacy-runtime", "role": "memory-and-tasks", "source": "pip"},
-    {"id": "research-pipeline", "kind": "included-service", "role": "research", "source": "repository"}
+    {"id": "rinnsal", "kind": "legacy-runtime", "role": "memory-and-tasks", "source": "pinned-git"},
+    {"id": "research-pipeline", "kind": "included-service", "role": "research", "source": "repository"},
+    {"id": "pubmed", "kind": "literature-api", "role": "paper-search", "source": "https"},
+    {"id": "arxiv", "kind": "literature-api", "role": "paper-search", "source": "https"}
   ],
   "release_gate": {
     "document": "RELEASE_GATE.md",

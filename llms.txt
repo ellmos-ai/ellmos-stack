@@ -2,7 +2,7 @@
 
 > Machine-readable project context for LLMs, crawlers, and agentic coding tools.
 
-Last checked: 2026-06-18
+Last checked: 2026-07-17
 
 ## Canonical Links
 
@@ -14,9 +14,9 @@ Last checked: 2026-06-18
 
 ## Summary
 
-ellmos-stack is a self-hosted AI research and knowledge-management stack. It combines Ollama for local LLM inference, n8n for workflow automation, Rinnsal for persistent AI memory/tasks, KnowledgeDigest for document ingestion/search, and included service scripts for research automation.
+ellmos-stack is a self-hosted AI research and knowledge-management stack. It combines Ollama for local LLM inference, n8n for workflow automation, Rinnsal for persistent AI memory/tasks, KnowledgeDigest for document ingestion/search, and included service scripts that search the official PubMed and arXiv APIs.
 
-The stack is designed for local-first deployment on Linux servers with Docker Compose and Python. The default model is `qwen3:4b`, but deployments can switch to other Ollama models through `.env`.
+The stack is designed for local-first deployment on Linux servers with Docker Compose and Python. The default model is `qwen3:4b`, but deployments can switch to other Ollama models through `.env`. Inference and stored user data remain local by default; literature search, Telegram, downloads, and the optional Anthropic provider require network access.
 
 ## Audience and Positioning
 
@@ -45,7 +45,7 @@ ellmos-stack is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, generic n8n
 - `install.sh`: installs the stack under `/opt/ellmos-stack`, creates a Python venv, starts services, and writes cron/systemd integration.
 - `services/auto_ingest.py`: indexes new KnowledgeDigest inbox files.
 - `services/process_summaries.py`: processes one summary queue item through the configured backend.
-- `services/research_pipeline.py`: searches papers, optionally analyzes them with Ollama, and can save reports to KnowledgeDigest.
+- `services/research_pipeline.py`: directly searches PubMed/arXiv, optionally analyzes results with Ollama, and can save reports to KnowledgeDigest.
 - `services/telegram_gateway.py`: optional owner-filtered Telegram gateway with Ollama fallback.
 
 ## Configuration
@@ -53,6 +53,7 @@ ellmos-stack is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, generic n8n
 - `.env.example` documents runtime settings and secrets.
 - `config/system_prompt.txt` defines the default local assistant behavior.
 - `config/cron.example` shows the production cron schedule.
+- `OPERATIONS.md` defines the backup, isolated restore rehearsal, and rollback boundary.
 
 Never commit a real `.env`, Telegram bot token, Anthropic key, database, document inbox, archive, or generated log.
 
@@ -60,13 +61,16 @@ Never commit a real `.env`, Telegram bot token, Anthropic key, database, documen
 
 - Ollama is bound to localhost by default.
 - n8n is bound to `127.0.0.1:5678` by default; access it via SSH tunnel or a TLS reverse proxy. n8n 1.0+ has no Basic Auth -- authentication is the n8n owner account, which must be created in the web UI on first start before the instance is ever exposed.
+- KnowledgeDigest is bound to `127.0.0.1:8787` by the installer; external access requires reviewed TLS, authentication, and firewall rules.
 - Docker image tags default to `latest`; pin `OLLAMA_IMAGE_TAG` and `N8N_IMAGE_TAG` in `.env` before production use.
-- KnowledgeDigest should be protected behind a reverse proxy or firewall when deployed publicly.
-- The optional Ollama reverse proxy in the README requires a bearer token and should not expose the raw localhost Ollama port.
+- `.env` values are loaded literally without shell evaluation, and the installer sets mode `0600`.
+- The Telegram gateway fails closed unless both bot token and owner chat ID are present.
+- Rinnsal and KnowledgeDigest installs are pinned to exact Git commits; KnowledgeDigest and cron jobs run as the restricted `ellmos-stack` user.
+- The optional Ollama reverse proxy in the README requires TLS plus a bearer token and does not expose the raw localhost Ollama port.
 
 ## Validation
 
-Use the local smoke tests before committing. GitHub Actions runs the same checks on Python 3.10, 3.11, and 3.12:
+Use the local smoke tests before committing. The standard GitHub Actions workflow runs compilation and the unit suite on Python 3.10, 3.11, and 3.12; the manual release workflow also runs the release checker and Linux Compose probes:
 
 ```bash
 PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v

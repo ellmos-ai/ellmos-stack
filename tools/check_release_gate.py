@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -17,6 +18,7 @@ REQUIRED_FILES = (
     ".gitignore",
     "CHANGELOG.md",
     "LICENSE",
+    "OPERATIONS.md",
     "README.md",
     "README_de.md",
     "RELEASE_GATE.md",
@@ -38,7 +40,12 @@ EVIDENCE_KEYS = (
     "ollama_ready",
     "n8n_ready",
     "bindings_localhost",
+    "owner_account_confirmed",
+    "external_access_reviewed",
+    "restore_rehearsed",
 )
+VERSION_TAG = re.compile(r"^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z][0-9A-Za-z._-]*)?$")
+IMAGE_DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
 
 
 class Gate:
@@ -100,9 +107,9 @@ def check_static(gate: Gate) -> None:
 
     docs = "\n".join(
         (REPO_ROOT / name).read_text(encoding="utf-8").lower()
-        for name in ("README.md", "README_de.md", "RELEASE_GATE.md", "llms.txt")
+        for name in ("README.md", "README_de.md", "RELEASE_GATE.md", "OPERATIONS.md", "llms.txt")
     )
-    for marker in ("owner account", "tls", "firewall", "latest", "release_gate.md"):
+    for marker in ("owner account", "tls", "firewall", "latest", "release_gate.md", "restore", "rollback"):
         gate.require(marker in docs, f"release/security documentation contains '{marker}'")
 
     tracked = [f"/{name.replace(chr(92), '/')}" for name in _tracked_files()]
@@ -120,7 +127,7 @@ def check_release_inputs(gate: Gate, ollama_tag: str, n8n_tag: str) -> None:
     for label, tag in (("OLLAMA_IMAGE_TAG", ollama_tag), ("N8N_IMAGE_TAG", n8n_tag)):
         normalized = tag.strip().lower()
         gate.require(bool(normalized), f"{label} is set")
-        gate.require(normalized not in {"latest", "stable", "nightly", "main", "master"}, f"{label} is immutable enough for a release smoke")
+        gate.require(bool(VERSION_TAG.fullmatch(normalized)), f"{label} is a full concrete version tag")
 
 
 def check_evidence(gate: Gate, evidence_path: Path) -> None:
@@ -129,7 +136,17 @@ def check_evidence(gate: Gate, evidence_path: Path) -> None:
         gate.require(evidence.get(key) is True, f"Linux evidence confirms {key}")
     gate.require(bool(evidence.get("ollama_image")), "Linux evidence records Ollama image")
     gate.require(bool(evidence.get("n8n_image")), "Linux evidence records n8n image")
+    gate.require(
+        bool(IMAGE_DIGEST.fullmatch(str(evidence.get("ollama_image_digest", "")))),
+        "Linux evidence records resolved Ollama image digest",
+    )
+    gate.require(
+        bool(IMAGE_DIGEST.fullmatch(str(evidence.get("n8n_image_digest", "")))),
+        "Linux evidence records resolved n8n image digest",
+    )
     gate.require(bool(evidence.get("commit")), "Linux evidence records commit")
+    gate.require(bool(evidence.get("security_reviewer")), "evidence records security reviewer")
+    gate.require(bool(evidence.get("security_reviewed_at")), "evidence records security review time")
 
 
 def main(argv: list[str] | None = None) -> int:

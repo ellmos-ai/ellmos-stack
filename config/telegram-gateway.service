@@ -4,11 +4,20 @@ After=network.target docker.service
 
 [Service]
 Type=simple
+User=ellmos-stack
+Group=ellmos-stack
 EnvironmentFile=/opt/ellmos-stack/.env
+Environment=PYTHONDONTWRITEBYTECODE=1
 WorkingDirectory=/opt/ellmos-stack
 ExecStart=/opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/telegram_gateway.py
 Restart=on-failure
 RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/ellmos-stack/data
+UMask=0077
 
 [Install]
 WantedBy=multi-user.target

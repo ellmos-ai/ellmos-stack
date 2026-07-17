@@ -6,7 +6,7 @@
 
 A self-hosted AI research and knowledge management stack. Combines a local LLM, workflow automation, persistent memory, and a knowledge base into one deployable setup.
 
-**Zero cloud dependencies.** Everything runs on your own server.
+**No hosted model dependency by default.** Inference, workflow state, memory, and documents stay on your server. Paper search (PubMed/arXiv), Telegram, package/image downloads, and the optional Anthropic summary backend require network access.
 
 Machine-readable context for LLMs and agentic coding tools: [`llms.txt`](llms.txt).
 
@@ -46,9 +46,9 @@ flowchart TD
 |-----------|------|--------|
 | **[Ollama](https://ollama.com)** | Local LLM inference (qwen3:4b default) | Docker |
 | **[n8n](https://n8n.io)** | Workflow automation, webhooks, scheduling | Docker |
-| **[Rinnsal](https://github.com/ellmos-ai/rinnsal)** | Lightweight memory + task management for AI agents | pip |
-| **[KnowledgeDigest](https://github.com/file-bricks/knowledgedigest)** | Document ingestion, chunking, search, web UI | pip |
-| **Research Pipeline** | Automated paper search → analysis → storage | included |
+| **[Rinnsal](https://github.com/ellmos-ai/rinnsal)** | Lightweight memory + task management for AI agents | pinned Git commit |
+| **[KnowledgeDigest](https://github.com/file-bricks/knowledgedigest)** | Document ingestion, chunking, search, web UI | pinned Git commit |
+| **Research Pipeline** | PubMed/arXiv API search → analysis → storage | included |
 | **Telegram Gateway** *(optional)* | Owner-filtered Telegram bot answering via the local LLM | included |
 
 ## Requirements
@@ -56,8 +56,6 @@ flowchart TD
 - **Server:** Linux (Ubuntu 22.04+, Debian 12+), 2+ CPU cores, 8+ GB RAM
 - **Software:** Docker, Docker Compose v2, Python 3.10+
 - **Disk:** ~5 GB for base setup (model + containers)
-
-Tested on Hetzner CCX13 (2 vCPU, 8 GB RAM, ~18 EUR/month).
 
 ## Validation
 
@@ -69,7 +67,7 @@ PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
 PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
 
-GitHub Actions runs the same smoke suite on Python 3.10, 3.11, and 3.12.
+The standard GitHub Actions workflow runs compilation and the full unit suite on Python 3.10, 3.11, and 3.12. The manual release workflow additionally runs the static release checker and Linux Compose probes.
 
 These checks are an offline preflight, not a Linux deployment claim. Public releases use the separate [stack release gate](RELEASE_GATE.md): exact container tags, a real Linux Docker Compose startup/probe, localhost-binding checks, and an owner-account/TLS/firewall review. Floating `latest` tags fail that release gate.
 
@@ -85,7 +83,7 @@ sudo ./install.sh
 
 # That's it. Services are running:
 #   n8n:              http://127.0.0.1:5678 (localhost only -- see below)
-#   KnowledgeDigest:  http://your-ip:8787
+#   KnowledgeDigest:  http://127.0.0.1:8787 (localhost only -- see below)
 #   Ollama:           localhost:11434 (internal)
 ```
 
@@ -93,15 +91,15 @@ The installer:
 1. Installs system dependencies (Python, Git, curl)
 2. Sets up Docker services (Ollama + n8n)
 3. Pulls the configured LLM model
-4. Installs Python components (Rinnsal, KnowledgeDigest)
-5. Creates systemd service for KnowledgeDigest web viewer
-6. Sets up cron jobs for auto-indexing and background summarization
+4. Installs pinned Rinnsal and KnowledgeDigest commits into a Python venv
+5. Creates a restricted `ellmos-stack` system user and systemd service for KnowledgeDigest
+6. Sets up non-root cron jobs for auto-indexing and background summarization
 
 **First n8n start -- create the owner account:** n8n 1.0+ has no Basic Auth. Authentication is handled by the owner account that you create in the web UI on first start. Because the port is bound to localhost, open it through an SSH tunnel and complete the setup before exposing anything:
 
 ```bash
-ssh -L 5678:127.0.0.1:5678 root@your-server
-# then open http://localhost:5678 in your local browser and create the owner account
+ssh -L 5678:127.0.0.1:5678 -L 8787:127.0.0.1:8787 root@your-server
+# then open http://localhost:5678 for n8n and http://localhost:8787 for KnowledgeDigest
 ```
 
 ## Configuration
@@ -138,7 +136,7 @@ cp paper.pdf /opt/ellmos-stack/data/knowledgedigest/inbox/
 # Auto-indexed within 5 minutes, summaries generated within 15 minutes
 ```
 
-Browse and search at `http://your-ip:8787`.
+Browse and search at `http://localhost:8787` through the SSH tunnel from Quickstart. Keep the service on localhost unless a reviewed TLS/authentication reverse proxy and firewall rule are in place.
 
 ### 2. Research Automation
 
@@ -151,17 +149,21 @@ venv/bin/python services/research_pipeline.py \
     --papers 10 --summarize --save
 ```
 
+The built-in, dependency-free search client uses [NCBI E-utilities for PubMed](https://www.ncbi.nlm.nih.gov/home/develop/api/) and the [arXiv API](https://info.arxiv.org/help/api/index.html). Select one source with `--source pubmed` or `--source arxiv`; paper search requires outbound network access.
+
 ### 3. AI Memory & Tasks
 
 Persistent memory and task management for AI agents:
 
 ```python
-from rinnsal import memory, tasks
+from rinnsal.memory import api as memory
+from rinnsal.tasks import api as tasks
 
-memory.init("/opt/ellmos-stack/data/rinnsal/rinnsal.db")
-memory.write("Server setup completed", tags=["infra"])
+db_path = "/opt/ellmos-stack/data/rinnsal/rinnsal.db"
+memory.init(db_path=db_path, agent_id="ellmos-stack")
+memory.remember("server_setup", "completed", category="project")
 
-tasks.init("/opt/ellmos-stack/data/rinnsal/rinnsal.db")
+tasks.init(db_path=db_path, agent_id="ellmos-stack")
 tasks.add("Review research results", priority="high")
 ```
 
@@ -185,7 +187,7 @@ curl http://localhost:11434/api/generate \
 Or via Rinnsal's OllamaRunner:
 
 ```python
-from rinnsal.auto import OllamaRunner
+from rinnsal.auto.ollama_runner import OllamaRunner
 
 runner = OllamaRunner(model="qwen3:4b", think=False)
 result = runner.run("Summarize this text: ...")
@@ -203,7 +205,7 @@ NoteSpaceLLM provides drag-and-drop document analysis, RAG-based chat, and multi
 
 ### 7. Telegram Gateway (optional)
 
-`services/telegram_gateway.py` is an owner-filtered Telegram bot: only the chat ID configured as owner may talk to it. Incoming messages are answered by the stack's local LLM (with optional Rinnsal memory context); if a `BACH_HEARTBEAT_URL` is configured and reachable, messages are forwarded there instead. Uses only the Python stdlib.
+`services/telegram_gateway.py` is an owner-filtered Telegram bot: only the configured owner chat ID may talk to it. Incoming messages are answered by the stack's local LLM with optional Rinnsal memory context. The gateway has no BACH forwarding path. It uses only the Python standard library.
 
 Setup:
 
@@ -222,13 +224,13 @@ systemctl enable --now telegram-gateway
 
 ## Architecture
 
-The stack uses **Docker** for Ollama and n8n (stateful services with volumes), and **pip packages** for the Python components (Rinnsal, KnowledgeDigest). Background processing runs via cron.
+The stack uses **Docker** for Ollama and n8n (stateful services with volumes), and installs the Python components (Rinnsal, KnowledgeDigest) from pinned Git commits into a venv. KnowledgeDigest and background cron processing run as the restricted `ellmos-stack` user.
 
 ```
 Port 5678  ──→ n8n (Docker, localhost only -- SSH tunnel or reverse proxy)
-Port 8787  ──→ KnowledgeDigest Web Viewer (systemd)
+Port 8787  ──→ KnowledgeDigest Web Viewer (systemd, localhost only)
 Port 11434 ──→ Ollama (Docker, localhost only)
-Port 11435 ──→ Ollama Auth Proxy (Nginx, optional, for remote clients)
+Port 443   ──→ TLS Ollama reverse proxy (optional, for remote clients)
 
 Cron:
   */5  min ──→ auto_ingest.py (index new documents)
@@ -268,7 +270,7 @@ Edit `config/system_prompt.txt` to adjust the LLM's personality, language, and b
 
 ## Exposing Ollama for Remote Access
 
-By default, Ollama only listens on localhost. To allow desktop clients (like NoteSpaceLLM) or other machines to use your stack's LLM, set up an Nginx reverse proxy with API key authentication:
+By default, Ollama only listens on localhost. For remote clients, keep that binding and use a TLS reverse proxy with a bearer token. Obtain a certificate for `ollama.example.com` first; never send the token over plain HTTP.
 
 ```bash
 # Install Nginx
@@ -277,8 +279,11 @@ apt install nginx
 # Create proxy config
 cat > /etc/nginx/sites-available/ollama-proxy << 'EOF'
 server {
-    listen 11435;
-    server_name _;
+    listen 443 ssl;
+    server_name ollama.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/ollama.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/ollama.example.com/privkey.pem;
 
     location / {
         if ($http_authorization != "Bearer YOUR_SECRET_API_KEY") {
@@ -290,32 +295,32 @@ server {
         proxy_buffering off;
     }
 
-    # Unauthenticated health endpoint
-    location /health {
-        proxy_pass http://127.0.0.1:11434/api/tags;
-        proxy_read_timeout 5s;
-    }
 }
 EOF
 
 # Enable and start
+chmod 600 /etc/nginx/sites-available/ollama-proxy
 ln -sf /etc/nginx/sites-available/ollama-proxy /etc/nginx/sites-enabled/
-ufw allow 11435/tcp
+nginx -t
+ufw allow 443/tcp
 systemctl reload nginx
 ```
 
 Generate a secure key: `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`
 
-Clients then connect to `http://your-server:11435` with the header `Authorization: Bearer YOUR_SECRET_API_KEY`.
+Clients then connect to `https://ollama.example.com` with the header `Authorization: Bearer YOUR_SECRET_API_KEY`.
 
 ## Security Notes
 
 - n8n is bound to `127.0.0.1:5678` by default and is **not** reachable from outside. n8n 1.0+ removed Basic Auth; authentication is handled by the n8n owner account, which you must create in the web UI on first start (via SSH tunnel, see Quickstart). **Never expose an n8n instance before the owner account exists** -- the first visitor would become the owner.
-- To deliberately make n8n reachable from outside, either keep the localhost binding and put a TLS reverse proxy (Nginx/Caddy) in front of `127.0.0.1:5678`, or change the port mapping in `docker-compose.yml` to `"0.0.0.0:5678:5678"` and protect it with a firewall -- only after the owner account is set up
+- For remote n8n access, keep the localhost binding and use a reviewed TLS/authentication reverse proxy, SSH tunnel, or private VPN. Never expose the raw HTTP port 5678 to the public internet, even after the owner account exists
 - Ollama listens on localhost only by default (not exposed to the internet)
-- The optional Ollama proxy (port 11435) uses Bearer token authentication
-- All credentials are in `.env` (never committed to git)
-- KnowledgeDigest web viewer should be secured with a reverse proxy (e.g., Nginx Basic Auth on port 8788, block direct access to 8787 via firewall)
+- The optional Ollama proxy uses TLS plus bearer-token authentication; a bearer token over plain HTTP is not secure
+- All credentials are in `.env` (never committed to git); the installer restricts that file to the owner (`0600`)
+- KnowledgeDigest binds to localhost by default; external access requires a reviewed TLS/authentication reverse proxy and firewall rule
+- The Telegram gateway refuses to start unless both the bot token and owner chat ID are configured
+- Rinnsal and KnowledgeDigest installer inputs are pinned to exact commits; upgrades are explicit source changes
+- Review [`OPERATIONS.md`](OPERATIONS.md) and rehearse restore before an upgrade or release
 
 ## Search and disambiguation
 
@@ -357,7 +362,7 @@ Each stack is a self-contained repo with its own manifest and `install.sh`. They
 | [ellmos-ai/rinnsal](https://github.com/ellmos-ai/rinnsal) | Lightweight AI memory & task management |
 | [file-bricks/knowledgedigest](https://github.com/file-bricks/knowledgedigest) | Document knowledge base with web UI |
 | [file-bricks/NoteSpaceLLM](https://github.com/file-bricks/NoteSpaceLLM) | Desktop document analysis & RAG chat (connects to stack's Ollama) |
-| [research-line/research-agent](https://github.com/research-line/research-agent) | Academic paper search & analysis |
+| [PubMed E-utilities](https://www.ncbi.nlm.nih.gov/home/develop/api/) and [arXiv API](https://info.arxiv.org/help/api/index.html) | Live academic-paper metadata search used by the included research pipeline |
 
 ## License
 

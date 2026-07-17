@@ -4,16 +4,14 @@
 Telegram Gateway -- Rezeption fuer den ellmos-stack.
 
 Architektur:
-    1. Server empfaengt ALLE Telegram-Nachrichten (einziger Polling-Endpoint)
-    2. Prueft ob BACH erreichbar ist (Laptop-Heartbeat)
-    3. JA  -> Leitet an BACH weiter, BACH antwortet via Telegram
-    4. NEIN -> qwen3 antwortet direkt (mit Rinnsal Memory-Kontext)
+    1. Server empfaengt Telegram-Nachrichten (einziger Polling-Endpoint)
+    2. Nachrichten fremder Chat-IDs werden verworfen
+    3. qwen3 antwortet lokal mit optionalem Rinnsal-Memory-Kontext
 
 Env-Variablen:
     RINNSAL_TELEGRAM_TOKEN  -- Bot-Token von @BotFather
     TELEGRAM_OWNER_CHAT_ID  -- Deine Chat-ID (nur du darfst schreiben)
     OLLAMA_MODEL            -- LLM-Modell (default: qwen3:4b)
-    BACH_HEARTBEAT_URL      -- URL fuer BACH-Erreichbarkeit (optional, Stufe 2)
 
 Usage:
     python telegram_gateway.py                # Starten
@@ -29,15 +27,21 @@ import urllib.error
 from datetime import datetime
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT))
+
+from services.env_config import load_env_file
+
+load_env_file(REPO_ROOT / ".env")
+
 # === Config ===
 BOT_TOKEN = os.environ.get("RINNSAL_TELEGRAM_TOKEN", "")
 OWNER_CHAT_ID = os.environ.get("TELEGRAM_OWNER_CHAT_ID", "")
 OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3:4b")
-BACH_HEARTBEAT_URL = os.environ.get("BACH_HEARTBEAT_URL", "")
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-PROMPT_FILE = Path(__file__).resolve().parent.parent / "config" / "system_prompt.txt"
+DATA_DIR = REPO_ROOT / "data"
+PROMPT_FILE = REPO_ROOT / "config" / "system_prompt.txt"
 MEMORY_FILE = DATA_DIR / "rinnsal" / "rinnsal.db"
 HISTORY_FILE = DATA_DIR / "telegram_history.jsonl"
 
@@ -47,6 +51,18 @@ TG_API = "https://api.telegram.org/bot{token}/{method}"
 MAX_CONTEXT = 10
 _context = []
 _last_update_id = 0
+
+
+def validate_config() -> None:
+    """Fail closed unless both Telegram credentials are configured."""
+
+    missing = []
+    if not BOT_TOKEN:
+        missing.append("RINNSAL_TELEGRAM_TOKEN")
+    if not OWNER_CHAT_ID:
+        missing.append("TELEGRAM_OWNER_CHAT_ID")
+    if missing:
+        raise ValueError(f"Missing required configuration: {', '.join(missing)}")
 
 
 def _trim_context():
@@ -89,27 +105,6 @@ def send_typing(chat_id: str):
         tg_call("sendChatAction", {"chat_id": chat_id, "action": "typing"})
     except Exception:
         pass
-
-
-# === BACH Heartbeat (Stufe 2) ===
-
-def bach_is_available() -> bool:
-    """Prueft ob BACH (Laptop) erreichbar ist."""
-    if not BACH_HEARTBEAT_URL:
-        return False
-    try:
-        req = urllib.request.Request(BACH_HEARTBEAT_URL)
-        with urllib.request.urlopen(req, timeout=3) as resp:
-            return resp.status == 200
-    except Exception:
-        return False
-
-
-def forward_to_bach(message: str, chat_id: str) -> bool:
-    """Leitet Nachricht an BACH weiter. Returns True wenn erfolgreich."""
-    # Stufe 2: Implementierung wenn BACH-Bridge steht
-    # BACH verarbeitet und antwortet selbst via Telegram
-    return False
 
 
 # === Ollama (Lokaler Fallback) ===
@@ -184,15 +179,16 @@ def save_to_history(role: str, content: str, chat_id: str = ""):
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
-def try_rinnsal_memory(message: str):
-    """Versucht relevanten Memory-Kontext aus Rinnsal zu laden."""
+def try_rinnsal_memory(_message: str):
+    """Versucht den kompakten Memory-Kontext aus Rinnsal zu laden."""
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-        from rinnsal import memory
-        memory.init(str(MEMORY_FILE))
-        results = memory.search(message, limit=3)
-        if results:
-            return "\n".join(f"- {r.get('content', '')[:200]}" for r in results)
+        from rinnsal.memory import api as memory_api
+
+        memory_api.init(db_path=str(MEMORY_FILE), agent_id="telegram-gateway")
+        context = memory_api.context(max_items=3)
+        if context:
+            return context.strip()
     except Exception:
         pass
     return ""
@@ -220,10 +216,8 @@ def handle_command(text: str, chat_id: str) -> str:
             ollama_v = json.loads(r.read()).get("version", "?")
         except Exception:
             ollama_v = "offline"
-        bach_status = "erreichbar" if bach_is_available() else "nicht erreichbar"
         return (f"*Server-Status*\n"
-                f"Ollama: {ollama_v} ({OLLAMA_MODEL})\n"
-                f"BACH: {bach_status}")
+                f"Ollama: {ollama_v} ({OLLAMA_MODEL})")
 
     elif cmd == "/queue":
         try:
@@ -245,9 +239,10 @@ def handle_command(text: str, chat_id: str) -> str:
     elif cmd == "/tasks":
         try:
             sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-            from rinnsal import tasks
-            tasks.init(str(MEMORY_FILE))
-            open_tasks = tasks.list(status="open", limit=10)
+            from rinnsal.tasks import api as tasks_api
+
+            tasks_api.init(db_path=str(MEMORY_FILE), agent_id="telegram-gateway")
+            open_tasks = tasks_api.list(status="open", limit=10)
             if not open_tasks:
                 return "Keine offenen Tasks."
             lines = ["*Offene Tasks:*"]
@@ -274,11 +269,6 @@ def process_message(text: str, chat_id: str) -> str:
         if response:
             return response
 
-    # Stufe 2: BACH-Weiterleitung
-    if bach_is_available():
-        if forward_to_bach(text, chat_id):
-            return ""  # BACH antwortet selbst
-
     # Kontext aus Rinnsal Memory
     memory_context = try_rinnsal_memory(text)
     prompt = build_context_prompt(text)
@@ -302,7 +292,6 @@ def poll_loop():
 
     print(f"[Gateway] Gestartet -- Modell: {OLLAMA_MODEL}")
     print(f"[Gateway] Owner: {OWNER_CHAT_ID or 'alle'}")
-    print(f"[Gateway] BACH Heartbeat: {BACH_HEARTBEAT_URL or 'deaktiviert'}")
 
     while True:
         try:
@@ -362,9 +351,11 @@ def poll_loop():
 
 
 def main():
-    if not BOT_TOKEN:
-        print("FEHLER: RINNSAL_TELEGRAM_TOKEN nicht gesetzt!", file=sys.stderr)
-        print("  Setze RINNSAL_TELEGRAM_TOKEN in deiner Shell; siehe .env.example.")
+    try:
+        validate_config()
+    except ValueError as exc:
+        print(f"FEHLER: {exc}", file=sys.stderr)
+        print("  Setze beide Werte in .env; siehe .env.example.", file=sys.stderr)
         sys.exit(1)
 
     if "--test" in sys.argv:

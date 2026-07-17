@@ -4,10 +4,11 @@
 
 SHELL=/bin/bash
 PYTHONIOENCODING=utf-8
+PYTHONDONTWRITEBYTECODE=1
 
 # KnowledgeDigest: Index new documents from inbox/ every 5 minutes
-*/5 * * * * root cd /opt/ellmos-stack/data/knowledgedigest && /opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/auto_ingest.py >> /var/log/ellmos-stack-ingest.log 2>&1
+*/5 * * * * ellmos-stack umask 077; cd /opt/ellmos-stack/data/knowledgedigest && /opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/auto_ingest.py >> /opt/ellmos-stack/data/logs/ingest.log 2>&1
 
 # KnowledgeDigest: Process 1 summary queue item every 15 minutes via Ollama
-# Cron does not inherit .env -- source it so provider/model settings apply
-*/15 * * * * root set -a; . /opt/ellmos-stack/.env; set +a; cd /opt/ellmos-stack/data/knowledgedigest && /opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/process_summaries.py >> /var/log/ellmos-stack-summaries.log 2>&1
+# The service script loads literal values from /opt/ellmos-stack/.env without shell evaluation
+*/15 * * * * ellmos-stack umask 077; cd /opt/ellmos-stack/data/knowledgedigest && /opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/process_summaries.py >> /opt/ellmos-stack/data/logs/summaries.log 2>&1

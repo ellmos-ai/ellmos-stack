@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Cron-Job: Indexiert neue Dokumente aus inbox/."""
+"""Cron job: index new documents from inbox/."""
 import sys
 from pathlib import Path
 
 # Adjust if KnowledgeDigest is installed elsewhere
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from knowledgedigest.ingestor import DocumentIngestor
 
 # Paths -- adjusted by install.sh
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "knowledgedigest"
@@ -16,17 +14,31 @@ INBOX = DATA_DIR / "inbox"
 ARCHIVE = DATA_DIR / "archive"
 
 
-def main():
+def main() -> int:
     if not INBOX.exists() or not any(INBOX.iterdir()):
-        return  # Nothing to do
-    ing = DocumentIngestor(DB)
-    ing.inbox_dir = INBOX
-    ing.archive_dir = ARCHIVE
-    stats = ing.ingest_directory(INBOX)
-    if stats:
-        total = stats if isinstance(stats, int) else getattr(stats, 'processed', 0)
-        print(f'[AUTO-INGEST] {total} documents processed')
+        return 0
+
+    from KnowledgeDigest.ingestor import DocumentIngestor
+
+    ingestor = DocumentIngestor(DB)
+    ingestor.inbox_dir = INBOX
+    ingestor.archive_dir = ARCHIVE
+    try:
+        stats = ingestor.ingest_directory(INBOX)
+        if stats.get("error"):
+            print(f"[AUTO-INGEST ERROR] {stats['error']}", file=sys.stderr)
+            return 1
+        ingested = int(stats.get("ingested", 0))
+        errors = int(stats.get("errors", 0))
+        if ingested:
+            print(f"[AUTO-INGEST] {ingested} documents processed")
+        if errors:
+            print(f"[AUTO-INGEST ERROR] {errors} documents failed", file=sys.stderr)
+            return 1
+        return 0
+    finally:
+        ingestor.close()
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

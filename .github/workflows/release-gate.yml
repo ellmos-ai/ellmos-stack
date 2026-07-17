@@ -13,6 +13,21 @@ on:
         required: true
         default: '2.31.1'
         type: string
+      owner_account_confirmed:
+        description: Target n8n owner account exists before any exposure
+        required: true
+        default: false
+        type: boolean
+      external_access_reviewed:
+        description: Target TLS, authentication, bindings, and firewall were reviewed
+        required: true
+        default: false
+        type: boolean
+      restore_rehearsed:
+        description: OPERATIONS.md restore was rehearsed for these versions
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -24,6 +39,9 @@ jobs:
     env:
       OLLAMA_IMAGE_TAG: ${{ inputs.ollama_image_tag }}
       N8N_IMAGE_TAG: ${{ inputs.n8n_image_tag }}
+      OWNER_ACCOUNT_CONFIRMED: ${{ inputs.owner_account_confirmed }}
+      EXTERNAL_ACCESS_REVIEWED: ${{ inputs.external_access_reviewed }}
+      RESTORE_REHEARSED: ${{ inputs.restore_rehearsed }}
 
     steps:
       - name: Check out repository
@@ -34,8 +52,38 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install gate dependency
-        run: python -m pip install --upgrade pip PyYAML
+      - name: Install gate and pinned component dependencies
+        run: |
+          python -m pip install PyYAML
+          RINNSAL_COMMIT=$(sed -n 's/^RINNSAL_COMMIT="\([0-9a-f]\{40\}\)"/\1/p' install.sh | tr -d '\r')
+          KNOWLEDGEDIGEST_COMMIT=$(sed -n 's/^KNOWLEDGEDIGEST_COMMIT="\([0-9a-f]\{40\}\)"/\1/p' install.sh | tr -d '\r')
+          [ -n "$RINNSAL_COMMIT" ]
+          [ -n "$KNOWLEDGEDIGEST_COMMIT" ]
+          python -m pip install \
+            "git+https://github.com/ellmos-ai/rinnsal.git@$RINNSAL_COMMIT" \
+            "git+https://github.com/file-bricks/knowledgedigest.git@$KNOWLEDGEDIGEST_COMMIT"
+
+      - name: Smoke pinned Python component contracts
+        run: |
+          python -m KnowledgeDigest --web --help >/dev/null
+          python - <<'PY'
+          from pathlib import Path
+          from tempfile import TemporaryDirectory
+          from KnowledgeDigest.ingestor import DocumentIngestor
+          from KnowledgeDigest.summarizer import Summarizer
+          from rinnsal.auto.ollama_runner import OllamaRunner
+          from rinnsal.memory import api as memory
+          from rinnsal.tasks import api as tasks
+
+          with TemporaryDirectory() as tmp:
+              database = str(Path(tmp) / "rinnsal.db")
+              memory.init(db_path=database, agent_id="release-gate")
+              memory.remember("component_contract", "ok", category="system")
+              assert "ok" in memory.context(max_items=1)
+              tasks.init(db_path=database, agent_id="release-gate")
+              tasks.add("component contract", priority="high")
+              assert tasks.list(status="open", limit=1)
+          PY
 
       - name: Run offline gate
         env:
@@ -47,6 +95,12 @@ jobs:
 
       - name: Validate pinned Compose plan
         run: docker compose config --quiet
+
+      - name: Validate operator attestations
+        run: |
+          [ "$OWNER_ACCOUNT_CONFIRMED" = true ]
+          [ "$EXTERNAL_ACCESS_REVIEWED" = true ]
+          [ "$RESTORE_REHEARSED" = true ]
 
       - name: Start pinned stack services
         run: docker compose up -d
@@ -70,6 +124,18 @@ jobs:
           [ "$ollama_ready" = true ]
           [ "$n8n_ready" = true ]
 
+      - name: Verify bindings and resolve image digests
+        run: |
+          [ "$(docker port ollama 11434/tcp)" = "127.0.0.1:11434" ]
+          [ "$(docker port n8n 5678/tcp)" = "127.0.0.1:5678" ]
+          ollama_image_id=$(docker inspect ollama --format '{{.Image}}')
+          n8n_image_id=$(docker inspect n8n --format '{{.Image}}')
+          ollama_digest=$(docker image inspect "$ollama_image_id" --format '{{index .RepoDigests 0}}')
+          n8n_digest=$(docker image inspect "$n8n_image_id" --format '{{index .RepoDigests 0}}')
+          echo "BINDINGS_LOCALHOST=true" >> "$GITHUB_ENV"
+          echo "OLLAMA_IMAGE_DIGEST=$ollama_digest" >> "$GITHUB_ENV"
+          echo "N8N_IMAGE_DIGEST=$n8n_digest" >> "$GITHUB_ENV"
+
       - name: Record and validate Linux evidence
         env:
           PYTHONIOENCODING: utf-8
@@ -78,6 +144,7 @@ jobs:
           python - <<'PY'
           import json
           import os
+          from datetime import datetime, timezone
           from pathlib import Path
 
           evidence = {
@@ -86,11 +153,18 @@ jobs:
               "services_started": True,
               "ollama_ready": True,
               "n8n_ready": True,
-              "bindings_localhost": True,
+              "bindings_localhost": os.environ["BINDINGS_LOCALHOST"] == "true",
+              "owner_account_confirmed": os.environ["OWNER_ACCOUNT_CONFIRMED"] == "true",
+              "external_access_reviewed": os.environ["EXTERNAL_ACCESS_REVIEWED"] == "true",
+              "restore_rehearsed": os.environ["RESTORE_REHEARSED"] == "true",
               "ollama_image": f"ollama/ollama:{os.environ['OLLAMA_IMAGE_TAG']}",
               "n8n_image": f"n8nio/n8n:{os.environ['N8N_IMAGE_TAG']}",
+              "ollama_image_digest": os.environ["OLLAMA_IMAGE_DIGEST"],
+              "n8n_image_digest": os.environ["N8N_IMAGE_DIGEST"],
               "commit": os.environ["GITHUB_SHA"],
               "run_id": os.environ["GITHUB_RUN_ID"],
+              "security_reviewer": os.environ["GITHUB_ACTOR"],
+              "security_reviewed_at": datetime.now(timezone.utc).isoformat(),
           }
           Path(".release-gate/release-gate-evidence.json").write_text(
               json.dumps(evidence, indent=2) + "\n", encoding="utf-8"
