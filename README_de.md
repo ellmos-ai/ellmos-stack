@@ -51,6 +51,21 @@ flowchart TD
 | **Research Pipeline** | PubMed-/arXiv-API-Suche → Analyse → Speicherung | enthalten |
 | **Telegram Gateway** *(optional)* | Owner-gefilterter Telegram-Bot, antwortet über das lokale LLM | enthalten |
 
+## Komposition auf einen Blick
+
+```
+ellmos-stack (Docker Compose)
+├── Inferenz         Ollama            lokales LLM (qwen3:4b)
+├── Automatisierung  n8n               Workflows, Webhooks, Scheduling
+├── Wissen/RAG       KnowledgeDigest   Ingest → Chunking → FTS5 → Summary
+├── Memory & Tasks   rinnsal           Agenten-Memory/Task-Zustand (pinned-git)
+├── services/        research_pipeline, auto_ingest, process_summaries,
+│                    telegram_gateway, env_config
+└── Externe APIs     PubMed · arXiv    Paper-Suche (https)
+```
+
+Vollständiger Kompositions-Bauplan — Komponenten, Rollen, Quellen, Policies: **[STACK-MAP.md](STACK-MAP.md)**.
+
 ## Voraussetzungen
 
 - **Server:** Linux (Ubuntu 22.04+, Debian 12+), 2+ CPU-Kerne, 8+ GB RAM
