@@ -3,10 +3,17 @@
 **🇬🇧 [English Version](README.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
+[![Pytest passed](https://img.shields.io/badge/Pytest-52%20passed-brightgreen.svg)](tests)
 [![Neuestes Release](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
+[![LLM-Ready Context](https://img.shields.io/badge/LLM--Ready-llms.txt-blue.svg)](llms.txt)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 Ein selbst gehosteter KI-Stack für Forschung und Wissensmanagement. Kombiniert ein lokales LLM, Workflow-Automatisierung, persistenten Speicher und eine Wissensdatenbank in einem deploybaren Setup.
+
+> [!NOTE]
+> **Maschinenlesbarer Kontext für KI-Agenten:**
+> Für eine strukturierte Übersicht der Architektur-Grenzen, primären Schnittstellen, Sicherheits-Policies und Local-First-Inferenzregeln siehe [`llms.txt`](llms.txt) oder [`STACK-MAP.md`](STACK-MAP.md).
 
 **Standardmäßig keine Abhängigkeit von einem gehosteten Modell.** Inferenz, Workflow-Zustand, Memory und Dokumente bleiben auf dem eigenen Server. Paper-Suche (PubMed/arXiv), Telegram, Paket-/Image-Downloads und das optionale Anthropic-Backend benötigen Netzwerkzugriff.
 

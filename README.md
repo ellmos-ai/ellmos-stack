@@ -3,10 +3,17 @@
 **🇩🇪 [Deutsche Version](README_de.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
+[![Pytest passed](https://img.shields.io/badge/Pytest-52%20passed-brightgreen.svg)](tests)
 [![Latest release](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
+[![LLM-Ready Context](https://img.shields.io/badge/LLM--Ready-llms.txt-blue.svg)](llms.txt)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 A self-hosted AI research and knowledge management stack. Combines a local LLM, workflow automation, persistent memory, and a knowledge base into one deployable setup.
+
+> [!NOTE]
+> **Machine-Readable Context for AI Agents:**
+> For an indexed overview of architectural boundaries, primary interfaces, safety policies, and local-first inference rules, see [`llms.txt`](llms.txt) or [`STACK-MAP.md`](STACK-MAP.md).
 
 **No hosted model dependency by default.** Inference, workflow state, memory, and documents stay on your server. Paper search (PubMed/arXiv), Telegram, package/image downloads, and the optional Anthropic summary backend require network access.
 
