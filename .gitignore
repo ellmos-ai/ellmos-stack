@@ -31,3 +31,7 @@ archive/
 
 # Interne Aufgabenliste
 TODO.md
+
+# Interne Pflege-/Wartungsprotokolle und Sperren
+_after-care/
+LOCK*.txt
