@@ -9,8 +9,10 @@
 ## Role in the stack family
 
 ellmos-stack is the **public, self-hosted base layer** ("deployment chassis") of the
-ellmos stack family: a local-first AI research kit. Higher editions nest it —
-ellmos-stack ⊂ sovereign-private ⊂ sovereign-hosted.
+ellmos stack family: a local-first AI research kit. It is designed to be nested —
+a larger composition can declare this stack as a component instead of copying it.
+Every published stack in the family is listed in the catalog
+[`ellmos-ai/stacks`](https://github.com/ellmos-ai/stacks).
 
 ## Map
 
@@ -60,5 +62,5 @@ ellmos-stack ⊂ sovereign-private ⊂ sovereign-hosted.
 - Not a generic n8n starter kit, not an Open-WebUI-only setup, not a hosted agent
   platform (see README positioning).
 - No remote access without TLS/auth — services bind to localhost by default.
-- Multi-tenant, SSO, billing and hosted operations belong to the sovereign
-  editions, not here.
+- Multi-tenancy, SSO, billing and managed hosted operations are out of scope. This
+  stack targets a single operator on their own Linux server.

@@ -2,12 +2,16 @@
 
 > Machine-readable project context for LLMs, crawlers, and agentic coding tools.
 
-Last checked: 2026-07-17
+Last checked: 2026-07-25
+Latest release: v0.1.0 (2026-07-23) -- public stack release gate baseline. See CHANGELOG.md.
 
 ## Canonical Links
 
 - Repository: https://github.com/ellmos-ai/ellmos-stack
+- Releases: https://github.com/ellmos-ai/ellmos-stack/releases
 - Ecosystem: https://github.com/ellmos-ai
+- Stack catalog (every stack in the family): https://github.com/ellmos-ai/stacks
+- Sibling stack, agent operations: https://github.com/ellmos-ai/agent-ops-stack
 - Rinnsal memory/task core: https://github.com/ellmos-ai/rinnsal
 - KnowledgeDigest document base: https://github.com/file-bricks/knowledgedigest
 - NoteSpaceLLM desktop client: https://github.com/file-bricks/NoteSpaceLLM
@@ -41,6 +45,8 @@ ellmos-stack is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, generic n8n
 
 ## Primary Interfaces
 
+- `stack.v2.json`: machine-readable composition manifest, schema `ellmos.stack.v2`. Canonical source for which components this stack declares.
+- `STACK-MAP.md`: human-readable composition blueprint derived from that manifest -- components, roles, sources, policies, and what is deliberately out of scope.
 - `docker-compose.yml`: runs Ollama and n8n with persistent Docker volumes.
 - `install.sh`: installs the stack under `/opt/ellmos-stack`, creates a Python venv, starts services, and writes cron/systemd integration.
 - `services/auto_ingest.py`: indexes new KnowledgeDigest inbox files.
