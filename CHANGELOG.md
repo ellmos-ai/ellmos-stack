@@ -5,6 +5,7 @@ and the [GitHub releases](https://github.com/ellmos-ai/ellmos-stack/releases).
 
 ## Unreleased
 
+- Updated `llms.txt` verification timestamp (2026-07-26), added Ecosystem badge to `README.md` / `README_de.md`, and performed discoverability audit [2026-07-26].
 - Standardized Shields.io badges (Pytest 52 passed, LLM-Ready context, Python 3.10+), added GFM LLM Callout Notes to README and README_de, and verified `llms.txt` context index [2026-07-25].
 - Added `STACK-MAP.md`, a derived composition blueprint that lists every part of the stack, its role, and its source, with the machine-readable manifest as the canonical source.
 - Added a composition-at-a-glance tree to the README linking to that blueprint.
