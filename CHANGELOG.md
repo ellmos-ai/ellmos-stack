@@ -5,6 +5,7 @@ and the [GitHub releases](https://github.com/ellmos-ai/ellmos-stack/releases).
 
 ## Unreleased
 
+- Updated `llms.txt` verification timestamp (2026-07-29), verified 52/52 unittest suite & 20/20 release gate rules passing, and completed technical hygiene check [G 2026-07-29].
 - Updated `llms.txt` verification timestamp (2026-07-27), verified 52/52 unittest suite passing, and completed technical hygiene check [2026-07-27].
 - Updated `llms.txt` verification timestamp (2026-07-26), added Ecosystem badge to `README.md` / `README_de.md`, and performed discoverability audit [2026-07-26].
 - Standardized Shields.io badges (Pytest 52 passed, LLM-Ready context, Python 3.10+), added GFM LLM Callout Notes to README and README_de, and verified `llms.txt` context index [2026-07-25].
