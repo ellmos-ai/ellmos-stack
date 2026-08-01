@@ -1,5 +1,7 @@
 # ellmos-stack
 
+<img src="assets/banner_v2.png" width="100%" alt="ellmos-stack Banner">
+
 **🇬🇧 [English Version](README.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)

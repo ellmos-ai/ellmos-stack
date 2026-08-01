@@ -1,6 +1,6 @@
 # ellmos-stack
 
-<img src="assets/banner.png" width="100%" alt="Ellmos Stack banner">
+<img src="assets/banner_v2.png" width="100%" alt="ellmos-stack banner">
 
 
 **🇩🇪 [Deutsche Version](README_de.md)**
