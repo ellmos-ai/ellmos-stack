@@ -381,6 +381,7 @@ Jeder Stack ist ein eigenständiges Repo mit eigenem `docker-compose.yml` und `i
 | Komponente | Beschreibung |
 |------------|--------------|
 | [ellmos-ai/rinnsal](https://github.com/ellmos-ai/rinnsal) | Leichtgewichtiges KI-Memory & Task-Management |
+| [ellmos-ai/n8n-workflow-manager](https://github.com/ellmos-ai/n8n-workflow-manager) | Prüft und versioniert die Workflows im n8n dieses Stacks: Graph-Viewer, Entscheidungsprotokoll, Rollback |
 | [file-bricks/knowledgedigest](https://github.com/file-bricks/knowledgedigest) | Dokumenten-Wissensdatenbank mit Web-UI |
 | [file-bricks/NoteSpaceLLM](https://github.com/file-bricks/NoteSpaceLLM) | Desktop-Dokumentenanalyse & RAG-Chat (verbindet sich mit dem Ollama des Stacks) |
 | [PubMed E-utilities](https://www.ncbi.nlm.nih.gov/home/develop/api/) und [arXiv-API](https://info.arxiv.org/help/api/index.html) | Live-Suche nach wissenschaftlichen Metadaten für die enthaltene Research Pipeline |

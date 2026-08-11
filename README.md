@@ -388,6 +388,7 @@ Each stack is a self-contained repo with its own manifest and `install.sh`. They
 | Component | Description |
 |-----------|-------------|
 | [ellmos-ai/rinnsal](https://github.com/ellmos-ai/rinnsal) | Lightweight AI memory & task management |
+| [ellmos-ai/n8n-workflow-manager](https://github.com/ellmos-ai/n8n-workflow-manager) | Reviews and version-controls the workflows running in this stack's n8n: graph viewer, decision log, rollback |
 | [file-bricks/knowledgedigest](https://github.com/file-bricks/knowledgedigest) | Document knowledge base with web UI |
 | [file-bricks/NoteSpaceLLM](https://github.com/file-bricks/NoteSpaceLLM) | Desktop document analysis & RAG chat (connects to stack's Ollama) |
 | [PubMed E-utilities](https://www.ncbi.nlm.nih.gov/home/develop/api/) and [arXiv API](https://info.arxiv.org/help/api/index.html) | Live academic-paper metadata search used by the included research pipeline |
