@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Research pipeline: PubMed/arXiv search -> optional Ollama analysis -> inbox."""
 
 from __future__ import annotations
@@ -19,11 +18,10 @@ from itertools import zip_longest
 from pathlib import Path
 from typing import NamedTuple
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from services.env_config import load_env_file
+from services.env_config import load_env_file  # noqa: E402
 
 load_env_file(REPO_ROOT / ".env")
 

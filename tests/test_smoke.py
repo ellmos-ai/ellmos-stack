@@ -11,9 +11,6 @@ Covers:
 """
 import ast
 import importlib.util
-import os
-import sys
-import tempfile
 import unittest
 from pathlib import Path
 
@@ -213,10 +210,6 @@ class TestTelegramGatewayImport(unittest.TestCase):
 
     def test_telegram_gateway_module_level_constants(self):
         """Import the module and check that env-var constants are set."""
-        spec = importlib.util.spec_from_file_location(
-            "telegram_gateway",
-            SERVICES_DIR / "telegram_gateway.py",
-        )
         # The module sets BOT_TOKEN = os.environ.get(..., "") at top level.
         # We can verify the AST sees these names without actually executing the module.
         src = (SERVICES_DIR / "telegram_gateway.py").read_text(encoding="utf-8")

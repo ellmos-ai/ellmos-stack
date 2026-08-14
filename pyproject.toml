@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ellmos-stack"
+version = "0.1.0"
+description = "Self-hosted AI research and knowledge management stack combining Ollama, n8n, Rinnsal, and KnowledgeDigest."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [{name = "ellmos-ai / BACH Contributors"}]
+keywords = [
+    "ellmos",
+    "ai-stack",
+    "self-hosted",
+    "ollama",
+    "n8n",
+    "knowledgedigest",
+    "rinnsal",
+    "rag",
+    "docker-compose",
+    "local-first",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/ellmos-ai/ellmos-stack#readme"
+Repository = "https://github.com/ellmos-ai/ellmos-stack"
+Issues = "https://github.com/ellmos-ai/ellmos-stack/issues"
+Documentation = "https://github.com/ellmos-ai/ellmos-stack/blob/master/README.md"
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "ruff>=0.4"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
+pythonpath = "."
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP"]
+ignore = ["E501"]

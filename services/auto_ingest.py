@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Cron job: index new documents from inbox/."""
 import sys
 from pathlib import Path

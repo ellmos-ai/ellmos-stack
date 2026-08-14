@@ -6,7 +6,6 @@ import os
 import re
 from pathlib import Path
 
-
 _KEY = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 

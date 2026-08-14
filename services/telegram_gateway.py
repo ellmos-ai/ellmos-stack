@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Telegram Gateway -- Rezeption fuer den ellmos-stack.
 
@@ -18,19 +17,21 @@ Usage:
     python telegram_gateway.py --test         # Verbindungstest
     python telegram_gateway.py --send "Text"  # Einmalig senden
 """
+from __future__ import annotations
+
 import json
 import os
 import sys
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from services.env_config import load_env_file
+from services.env_config import load_env_file  # noqa: E402
 
 load_env_file(REPO_ROOT / ".env")
 
@@ -72,7 +73,7 @@ def _trim_context():
 
 # === Telegram API ===
 
-def tg_call(method: str, params: dict = None, timeout: int = 15):
+def tg_call(method: str, params: dict | None = None, timeout: int = 15):
     """Telegram Bot API aufrufen."""
     url = TG_API.format(token=BOT_TOKEN, method=method)
     if params:
@@ -228,7 +229,7 @@ def handle_command(text: str, chat_id: str) -> str:
             rows = c.execute("SELECT status, COUNT(*) as cnt FROM digest_queue GROUP BY status").fetchall()
             total = c.execute("SELECT COUNT(*) FROM summaries").fetchone()[0]
             c.close()
-            lines = [f"*KnowledgeDigest Queue*"]
+            lines = ["*KnowledgeDigest Queue*"]
             for r in rows:
                 lines.append(f"  {r['status']}: {r['cnt']}")
             lines.append(f"Summaries gesamt: {total}")
