@@ -26,10 +26,10 @@ Every published stack in the family is listed in the catalog
  │  │ role: local-inference   │   │ role: automation        │                        │
  │  └─────────────────────────┘   └─────────────────────────┘                        │
  │                                                                                   │
- │  ┌─ Knowledge / RAG ───────────────────┐   ┌─ Memory & Tasks ─────────────┐       │
- │  │ KnowledgeDigest (module component)  │   │ rinnsal (pinned-git)         │       │
- │  │ role: knowledge.search.default      │   │ role: memory-and-tasks       │       │
- │  │ ingest → chunk → FTS5 → summarize   │   │ (legacy runtime)             │       │
+ │  ┌─ Knowledge / RAG ───────────────────┐   ┌─ Specialized state ──────────┐       │
+ │  │ KnowledgeDigest (pinned-git)        │   │ USMC       memory.curated    │       │
+ │  │ role: knowledge.search.default      │   │ GARDENER   memory.organic    │       │
+ │  │ ingest → chunk → FTS5 → summarize   │   │ task-master tasks.default     │       │
  │  └─────────────────────────────────────┘   └──────────────────────────────┘       │
  │                                                                                   │
  │  ┌─ Included services (services/) ───────────────────────────────────────────┐    │
@@ -50,10 +50,12 @@ Every published stack in the family is listed in the catalog
 
 | Component | Kind | Role | Source |
 |---|---|---|---|
-| KnowledgeDigest | module component | `knowledge.search.default` (RAG) | module registry |
+| USMC | module component | `memory.curated` | pinned-git |
+| GARDENER | module component | `memory.organic` | pinned-git |
+| task-master | module component | `tasks.default` | pinned-git |
+| KnowledgeDigest | module component | `knowledge.search.default` (RAG) | pinned-git |
 | Ollama | model-runtime | local-inference | docker |
 | n8n | workflow-engine | automation | docker |
-| rinnsal | legacy-runtime | memory-and-tasks | pinned-git |
 | research-pipeline | included-service | research | this repository |
 | pubmed / arxiv | literature-api | paper-search | https |
 

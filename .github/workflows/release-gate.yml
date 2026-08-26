@@ -55,12 +55,18 @@ jobs:
       - name: Install gate and pinned component dependencies
         run: |
           python -m pip install PyYAML
-          RINNSAL_COMMIT=$(sed -n 's/^RINNSAL_COMMIT="\([0-9a-f]\{40\}\)"/\1/p' install.sh | tr -d '\r')
+          USMC_COMMIT=$(sed -n 's/^USMC_COMMIT="\([0-9a-f]\{40\}\)"/\1/p' install.sh | tr -d '\r')
+          GARDENER_COMMIT=$(sed -n 's/^GARDENER_COMMIT="\([0-9a-f]\{40\}\)"/\1/p' install.sh | tr -d '\r')
+          TASK_MASTER_COMMIT=$(sed -n 's/^TASK_MASTER_COMMIT="\([0-9a-f]\{40\}\)"/\1/p' install.sh | tr -d '\r')
           KNOWLEDGEDIGEST_COMMIT=$(sed -n 's/^KNOWLEDGEDIGEST_COMMIT="\([0-9a-f]\{40\}\)"/\1/p' install.sh | tr -d '\r')
-          [ -n "$RINNSAL_COMMIT" ]
+          [ -n "$USMC_COMMIT" ]
+          [ -n "$GARDENER_COMMIT" ]
+          [ -n "$TASK_MASTER_COMMIT" ]
           [ -n "$KNOWLEDGEDIGEST_COMMIT" ]
           python -m pip install \
-            "git+https://github.com/ellmos-ai/rinnsal.git@$RINNSAL_COMMIT" \
+            "git+https://github.com/ellmos-ai/usmc.git@$USMC_COMMIT" \
+            "git+https://github.com/ellmos-ai/gardener.git@$GARDENER_COMMIT" \
+            "git+https://github.com/ellmos-ai/task-master.git@$TASK_MASTER_COMMIT" \
             "git+https://github.com/file-bricks/knowledgedigest.git@$KNOWLEDGEDIGEST_COMMIT"
 
       - name: Smoke pinned Python component contracts
@@ -71,18 +77,29 @@ jobs:
           from tempfile import TemporaryDirectory
           from KnowledgeDigest.ingestor import DocumentIngestor
           from KnowledgeDigest.summarizer import Summarizer
-          from rinnsal.auto.ollama_runner import OllamaRunner
-          from rinnsal.memory import api as memory
-          from rinnsal.tasks import api as tasks
+          from gardener import Gardener
+          from taskplan import api as tasks
+          from usmc import api as memory
 
           with TemporaryDirectory() as tmp:
-              database = str(Path(tmp) / "rinnsal.db")
-              memory.init(db_path=database, agent_id="release-gate")
+              root = Path(tmp)
+              memory_database = str(root / "usmc" / "usmc_memory.db")
+              task_database = str(root / "task-master" / "taskplan.db")
+              Path(memory_database).parent.mkdir(parents=True)
+              Path(task_database).parent.mkdir(parents=True)
+              memory.init(db_path=memory_database, agent_id="release-gate")
               memory.remember("component_contract", "ok", category="system")
               assert "ok" in memory.context(max_items=1)
-              tasks.init(db_path=database, agent_id="release-gate")
+              organic = Gardener(
+                  home=root / "gardener-home",
+                  data_dir=root / "gardener-data",
+              )
+              organic.put("component-contract", content="ok", type="memory")
+              assert organic.get("component-contract")["content"] == "ok"
+              tasks.init(db_path=task_database, agent_id="release-gate")
               tasks.add("component contract", priority="high")
               assert tasks.list(status="open", limit=1)
+              assert memory_database != task_database
           PY
 
       - name: Run offline gate

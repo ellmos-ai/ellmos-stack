@@ -5,6 +5,7 @@ and the [GitHub releases](https://github.com/ellmos-ai/ellmos-stack/releases).
 
 ## Unreleased
 
+- Replaced the combined Rinnsal memory/task runtime with pinned USMC (`memory.curated`), GARDENER (`memory.organic`), and task-master (`tasks.default`) modules, kept KnowledgeDigest as `knowledge.search.default`, separated runtime state, retained `RINNSAL_TELEGRAM_TOKEN` only as a migration fallback, and verified 54/54 tests plus 27/27 offline release checks [2026-08-26].
 - Added `pyproject.toml` configuration, harmonized code hygiene and import standards (PEP 8, ruff 0.4+), updated `llms.txt` verification timestamp (2026-08-14), and verified 52/52 pytest suite & 20/20 release gate rules [G 2026-08-14].
 - Updated `llms.txt` verification timestamp (2026-07-27), verified 52/52 unittest suite passing, and completed technical hygiene check [2026-07-27].
 - Updated `llms.txt` verification timestamp (2026-07-26), added Ecosystem badge to `README.md` / `README_de.md`, and performed discoverability audit [2026-07-26].

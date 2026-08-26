@@ -2,7 +2,7 @@
 
 > Machine-readable project context for LLMs, crawlers, and agentic coding tools.
 
-Last checked: 2026-08-14
+Last checked: 2026-08-26
 Latest release: v0.1.0 (2026-07-23) -- public stack release gate baseline. See CHANGELOG.md.
 
 ## Canonical Links
@@ -12,13 +12,15 @@ Latest release: v0.1.0 (2026-07-23) -- public stack release gate baseline. See C
 - Ecosystem: https://github.com/ellmos-ai
 - Stack catalog (every stack in the family): https://github.com/ellmos-ai/stacks
 - Sibling stack, agent operations: https://github.com/ellmos-ai/agent-ops-stack
-- Rinnsal memory/task core: https://github.com/ellmos-ai/rinnsal
+- USMC curated memory: https://github.com/ellmos-ai/usmc
+- GARDENER organic memory: https://github.com/ellmos-ai/gardener
+- task-master task state: https://github.com/ellmos-ai/task-master
 - KnowledgeDigest document base: https://github.com/file-bricks/knowledgedigest
 - NoteSpaceLLM desktop client: https://github.com/file-bricks/NoteSpaceLLM
 
 ## Summary
 
-ellmos-stack is a self-hosted AI research and knowledge-management stack. It combines Ollama for local LLM inference, n8n for workflow automation, Rinnsal for persistent AI memory/tasks, KnowledgeDigest for document ingestion/search, and included service scripts that search the official PubMed and arXiv APIs.
+ellmos-stack is a self-hosted AI research and knowledge-management stack. It combines Ollama for local LLM inference, n8n for workflow automation, USMC for curated memory, GARDENER for organic memory, task-master for dedicated task state, KnowledgeDigest for document ingestion/search, and included service scripts that search the official PubMed and arXiv APIs.
 
 The stack is designed for local-first deployment on Linux servers with Docker Compose and Python. The default model is `qwen3:4b`, but deployments can switch to other Ollama models through `.env`. Inference and stored user data remain local by default; literature search, Telegram, downloads, and the optional Anthropic provider require network access.
 
@@ -31,7 +33,7 @@ Do not describe it as hosted SaaS, a managed LLMOps platform, a Kubernetes stack
 ## Search Phrases
 
 - ellmos-stack self-hosted AI research stack
-- ellmos stack Ollama n8n Rinnsal KnowledgeDigest
+- ellmos stack Ollama n8n USMC GARDENER task-master KnowledgeDigest
 - local-first AI knowledge stack Docker Compose
 - self-hosted research automation Ollama n8n
 - private document analysis stack with Ollama and n8n
@@ -71,7 +73,7 @@ Never commit a real `.env`, Telegram bot token, Anthropic key, database, documen
 - Docker image tags default to `latest`; pin `OLLAMA_IMAGE_TAG` and `N8N_IMAGE_TAG` in `.env` before production use.
 - `.env` values are loaded literally without shell evaluation, and the installer sets mode `0600`.
 - The Telegram gateway fails closed unless both bot token and owner chat ID are present.
-- Rinnsal and KnowledgeDigest installs are pinned to exact Git commits; KnowledgeDigest and cron jobs run as the restricted `ellmos-stack` user.
+- USMC, GARDENER, task-master, and KnowledgeDigest installs are pinned to exact Git commits; their state paths are separate, and KnowledgeDigest and cron jobs run as the restricted `ellmos-stack` user.
 - The optional Ollama reverse proxy in the README requires TLS plus a bearer token and does not expose the raw localhost Ollama port.
 
 ## Validation

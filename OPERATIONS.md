@@ -4,6 +4,9 @@ This runbook covers the state created by `install.sh`: stack configuration and
 SQLite files under `/opt/ellmos-stack`, plus the n8n and Ollama Docker volumes.
 Run it on the Linux host as root. Treat every backup as sensitive because it
 contains `.env`, documents, workflow credentials, and conversation data.
+USMC, GARDENER, task-master, and KnowledgeDigest keep independent state below
+`data/usmc`, `data/gardener`, `data/task-master`, and `data/knowledgedigest`;
+never merge their databases during backup, restore, or rollback.
 
 ## Before an upgrade
 
@@ -127,6 +130,9 @@ curl --fail http://127.0.0.1:11434/api/version
 curl --fail http://127.0.0.1:5678/healthz
 curl --fail http://127.0.0.1:8787/
 test -r /opt/ellmos-stack/data/knowledgedigest/knowledge.db
+test -d /opt/ellmos-stack/data/usmc
+test -d /opt/ellmos-stack/data/gardener
+test -d /opt/ellmos-stack/data/task-master
 ```
 
 Also verify the n8n owner account, one representative workflow, one document

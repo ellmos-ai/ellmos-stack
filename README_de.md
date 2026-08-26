@@ -5,7 +5,7 @@
 **🇬🇧 [English Version](README.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![Pytest passed](https://img.shields.io/badge/Pytest-52%20passed-brightgreen.svg)](tests)
+[![Tests bestanden](https://img.shields.io/badge/Tests-54%20bestanden-brightgreen.svg)](tests)
 [![Neuestes Release](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![ellmos ecosystem](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
 [![LLM-Ready Context](https://img.shields.io/badge/LLM--Ready-llms.txt-blue.svg)](llms.txt)
@@ -26,11 +26,11 @@ Maschinenlesbarer Kontext für LLMs und Coding-Agenten: [`llms.txt`](llms.txt).
 
 | Wenn du brauchst... | Starte mit | Warum |
 |---------------------|------------|-------|
-| Einen lokalen KI-Forschungsserver | [`install.sh`](install.sh) | Installiert Ollama, n8n, Rinnsal und KnowledgeDigest unter `/opt/ellmos-stack`. |
+| Einen lokalen KI-Forschungsserver | [`install.sh`](install.sh) | Installiert Ollama, n8n, USMC, GARDENER, task-master und KnowledgeDigest unter `/opt/ellmos-stack`. |
 | Workflow-Automatisierung mit lokalem Modell | [`docker-compose.yml`](docker-compose.yml) | Startet n8n und Ollama mit persistenten Volumes. |
 | Einen durchsuchbaren Dokumenten-Eingang | [`services/auto_ingest.py`](services/auto_ingest.py) | Übergibt neue Dokumente an die KnowledgeDigest-Indexierung. |
 | Paper-Suche und Zusammenfassungspipelines | [`services/research_pipeline.py`](services/research_pipeline.py) | Sucht Paper, fasst sie zusammen und kann Ergebnisse in der Wissensdatenbank speichern. |
-| Agenten-Memory und Task-Zustand | [ellmos-ai/rinnsal](https://github.com/ellmos-ai/rinnsal) | Stellt die Python-Schicht für Memory und Tasks bereit. |
+| Agenten-Memory und Task-Zustand | [`stack.v2.json`](stack.v2.json) | Trennt kuratiertes Memory, organisches Memory und Tasks in spezialisierte Module. |
 
 ellmos-stack ist ein **local-first KI-Stack für Forschungsautomatisierung und private Wissensarbeit**. Er ist kein gehostetes SaaS-Produkt, kein Cloud-LLM-Gateway und keine Kubernetes-Plattform.
 
@@ -45,7 +45,8 @@ flowchart TD
     N8N["n8n<br/>Workflow Engine"]
     RESEARCH["Research Pipeline<br/>PubMed/arXiv → Ollama → KnowledgeDigest"]
     subgraph SHARED["Gemeinsame Dienste"]
-      RIN["Rinnsal<br/>Memory + Tasks · Ollama Runner"]
+      MEMORY["USMC + GARDENER<br/>Kuratiertes + organisches Memory"]
+      TASKS["task-master<br/>Task-Zustand"]
       KD["KnowledgeDigest<br/>Dokumentensuche + Web · Auto-Indexierung"]
     end
   end
@@ -58,7 +59,9 @@ flowchart TD
 |------------|-------|--------|
 | **[Ollama](https://ollama.com)** | Lokale LLM-Inferenz (qwen3:4b Standard) | Docker |
 | **[n8n](https://n8n.io)** | Workflow-Automatisierung, Webhooks, Scheduling | Docker |
-| **[Rinnsal](https://github.com/ellmos-ai/rinnsal)** | Leichtgewichtiges Memory + Task-Management für KI-Agenten | gepinnter Git-Commit |
+| **[USMC](https://github.com/ellmos-ai/usmc)** | Kuratierte Fakten, Working Memory und Lessons (`memory.curated`) | gepinnter Git-Commit |
+| **[GARDENER](https://github.com/ellmos-ai/gardener)** | Organisches lokales Memory und Wissenssubstrat (`memory.organic`) | gepinnter Git-Commit |
+| **[task-master](https://github.com/ellmos-ai/task-master)** | Getrennter Task-Zustand (`tasks.default`) | gepinnter Git-Commit |
 | **[KnowledgeDigest](https://github.com/file-bricks/knowledgedigest)** | Dokumenten-Ingestion, Chunking, Suche, Web-UI | gepinnter Git-Commit |
 | **Research Pipeline** | PubMed-/arXiv-API-Suche → Analyse → Speicherung | enthalten |
 | **Telegram Gateway** *(optional)* | Owner-gefilterter Telegram-Bot, antwortet über das lokale LLM | enthalten |
@@ -70,7 +73,9 @@ ellmos-stack (Docker Compose)
 ├── Inferenz         Ollama            lokales LLM (qwen3:4b)
 ├── Automatisierung  n8n               Workflows, Webhooks, Scheduling
 ├── Wissen/RAG       KnowledgeDigest   Ingest → Chunking → FTS5 → Summary
-├── Memory & Tasks   rinnsal           Agenten-Memory/Task-Zustand (pinned-git)
+├── Kuratiertes Mem. USMC              Fakten, Working Memory, Lessons (pinned-git)
+├── Organisches Mem. GARDENER          lokales Memory/Wissenssubstrat (pinned-git)
+├── Tasks            task-master       getrennter Task-Zustand (pinned-git)
 ├── services/        research_pipeline, auto_ingest, process_summaries,
 │                    telegram_gateway, env_config
 └── Externe APIs     PubMed · arXiv    Paper-Suche (https)
@@ -118,7 +123,7 @@ Der Installer:
 1. Installiert Systemabhängigkeiten (Python, Git, curl)
 2. Richtet Docker-Dienste ein (Ollama + n8n)
 3. Lädt das konfigurierte LLM-Modell herunter
-4. Installiert gepinnte Rinnsal- und KnowledgeDigest-Commits in ein Python-Venv
+4. Installiert gepinnte USMC-, GARDENER-, task-master- und KnowledgeDigest-Commits in ein Python-Venv
 5. Erstellt den eingeschränkten Systemnutzer `ellmos-stack` und den KnowledgeDigest-systemd-Dienst
 6. Richtet Cron-Jobs ohne Root-Rechte für Auto-Indexierung und Hintergrund-Zusammenfassungen ein
 
@@ -149,6 +154,7 @@ Wichtige Einstellungen:
 | `N8N_IMAGE_TAG` | `latest` | n8n-Docker-Image-Tag -- vor Produktivbetrieb pinnen |
 | `KD_PORT` | `8787` | KnowledgeDigest Web-UI Port |
 | `KD_SUMMARY_PROVIDER` | `ollama` | Zusammenfassungs-Backend: `ollama`, `anthropic` |
+| `ELLMOS_TELEGRAM_TOKEN` | leer | Bevorzugtes Telegram-Bot-Token; `RINNSAL_TELEGRAM_TOKEN` bleibt nur als Migrations-Fallback |
 
 **Image-Versionen für Produktion pinnen:** Die Compose-Datei nutzt für beide Docker-Images standardmäßig `latest` -- bequem zum Ausprobieren, aber nicht reproduzierbar und holt ggf. ungetestete Breaking Changes (n8n veröffentlicht regelmäßig Major-Releases). Vor Produktivbetrieb `OLLAMA_IMAGE_TAG` und `N8N_IMAGE_TAG` in der `.env` auf die konkret getesteten Versionen setzen.
 
@@ -180,18 +186,30 @@ Der eingebaute, abhängigkeitsfreie Suchclient nutzt [NCBI E-utilities für PubM
 
 ### 3. KI-Memory & Tasks
 
-Persistentes Memory und Task-Management für KI-Agenten:
+Kuratiertes Memory und Task-Zustand verwenden bewusst getrennte Datenbanken.
+Das organische Memory von GARDENER nutzt das eigene Verzeichnis
+`/opt/ellmos-stack/data/gardener/`.
 
 ```python
-from rinnsal.memory import api as memory
-from rinnsal.tasks import api as tasks
+from pathlib import Path
 
-db_path = "/opt/ellmos-stack/data/rinnsal/rinnsal.db"
-memory.init(db_path=db_path, agent_id="ellmos-stack")
+from gardener import Gardener
+from usmc import api as memory
+from taskplan import api as tasks
+
+memory_db = "/opt/ellmos-stack/data/usmc/usmc_memory.db"
+task_db = "/opt/ellmos-stack/data/task-master/taskplan.db"
+memory.init(db_path=memory_db, agent_id="ellmos-stack")
 memory.remember("server_setup", "completed", category="project")
 
-tasks.init(db_path=db_path, agent_id="ellmos-stack")
+tasks.init(db_path=task_db, agent_id="ellmos-stack")
 tasks.add("Review research results", priority="high")
+
+organic = Gardener(
+    home=Path("/opt/ellmos-stack/data/gardener/home"),
+    data_dir=Path("/opt/ellmos-stack/data/gardener"),
+)
+organic.put("research-note", content="Neue Evidenz prüfen", type="memory")
 ```
 
 ### 4. Workflow-Automatisierung (n8n)
@@ -211,15 +229,6 @@ curl http://localhost:11434/api/generate \
     -d '{"model":"qwen3:4b","prompt":"Erkläre Quantenverschränkung kurz"}'
 ```
 
-Oder über Rinnsals OllamaRunner:
-
-```python
-from rinnsal.auto.ollama_runner import OllamaRunner
-
-runner = OllamaRunner(model="qwen3:4b", think=False)
-result = runner.run("Fasse diesen Text zusammen: ...")
-```
-
 ### 6. Desktop-Dokumentenanalyse (NoteSpaceLLM)
 
 [NoteSpaceLLM](https://github.com/file-bricks/NoteSpaceLLM) als Desktop-Client für interaktive Dokumentenanalyse nutzen, angetrieben durch die Ollama-Instanz des Stacks:
@@ -232,13 +241,13 @@ NoteSpaceLLM bietet Drag-and-Drop-Dokumentenanalyse, RAG-basierten Chat und Mult
 
 ### 7. Telegram Gateway (optional)
 
-`services/telegram_gateway.py` ist ein Owner-gefilterter Telegram-Bot: Nur die konfigurierte Owner-Chat-ID darf mit ihm sprechen. Eingehende Nachrichten beantwortet das lokale LLM des Stacks mit optionalem Rinnsal-Memory-Kontext. Eine BACH-Weiterleitung gibt es nicht. Das Gateway nutzt ausschließlich die Python-Standardbibliothek.
+`services/telegram_gateway.py` ist ein Owner-gefilterter Telegram-Bot: Nur die konfigurierte Owner-Chat-ID darf mit ihm sprechen. Eingehende Nachrichten beantwortet das lokale LLM des Stacks mit optionalem USMC-Kontext; `/tasks` liest die getrennte task-master-Datenbank. Eine BACH-Weiterleitung gibt es nicht. Das Gateway nutzt ausschließlich die Python-Standardbibliothek.
 
 Einrichtung:
 
 ```bash
 # 1. Bot-Token von @BotFather und Chat-ID von @userinfobot holen,
-#    dann RINNSAL_TELEGRAM_TOKEN und TELEGRAM_OWNER_CHAT_ID in .env setzen
+#    dann ELLMOS_TELEGRAM_TOKEN und TELEGRAM_OWNER_CHAT_ID in .env setzen
 
 # 2. Verbindung testen
 /opt/ellmos-stack/venv/bin/python /opt/ellmos-stack/services/telegram_gateway.py --test
@@ -251,7 +260,7 @@ systemctl enable --now telegram-gateway
 
 ## Architektur
 
-Der Stack nutzt **Docker** für Ollama und n8n (zustandsbehaftete Dienste mit Volumes) und installiert die Python-Komponenten (Rinnsal, KnowledgeDigest) aus gepinnten Git-Commits in ein Venv. KnowledgeDigest und die Cron-Hintergrundverarbeitung laufen als eingeschränkter Nutzer `ellmos-stack`.
+Der Stack nutzt **Docker** für Ollama und n8n (zustandsbehaftete Dienste mit Volumes) und installiert USMC, GARDENER, task-master und KnowledgeDigest aus gepinnten Git-Commits in ein Venv. Ihre Laufzeitdaten bleiben in getrennten Pfaden. KnowledgeDigest und die Cron-Hintergrundverarbeitung laufen als eingeschränkter Nutzer `ellmos-stack`.
 
 ```
 Port 5678  ──→ n8n (Docker, nur localhost -- SSH-Tunnel oder Reverse-Proxy)
@@ -346,15 +355,15 @@ Clients verbinden sich dann mit `https://ollama.example.com` und dem Header `Aut
 - Alle Zugangsdaten sind in `.env` (wird nie ins Git committed); der Installer beschränkt die Datei auf den Eigentümer (`0600`)
 - KnowledgeDigest bindet standardmäßig an localhost; externer Zugriff braucht einen geprüften TLS-/Auth-Reverse-Proxy samt Firewall-Regel
 - Das Telegram-Gateway startet nur, wenn Bot-Token und Owner-Chat-ID gesetzt sind
-- Rinnsal und KnowledgeDigest sind im Installer auf exakte Commits gepinnt; Upgrades sind bewusste Quelländerungen
+- USMC, GARDENER, task-master und KnowledgeDigest sind im Installer auf exakte Commits gepinnt; Upgrades sind bewusste Quelländerungen
 - Vor Upgrade oder Release [`OPERATIONS.md`](OPERATIONS.md) prüfen und einen Restore proben
 
 ## Suche und Abgrenzung
 
-Mit **ellmos-stack** ist der selbst gehostete lokale KI-Forschungsstack von `ellmos-ai` gemeint: Ollama für Inferenz, n8n für Workflow-Automatisierung, Rinnsal für Agenten-Memory und Tasks sowie KnowledgeDigest für Dokumentensuche. Sinnvolle Suchphrasen:
+Mit **ellmos-stack** ist der selbst gehostete lokale KI-Forschungsstack von `ellmos-ai` gemeint: Ollama für Inferenz, n8n für Workflow-Automatisierung, spezialisiertes USMC-/GARDENER-Memory, task-master für Tasks sowie KnowledgeDigest für Dokumentensuche. Sinnvolle Suchphrasen:
 
 - `ellmos-stack self-hosted AI research stack`
-- `ellmos stack Ollama n8n Rinnsal KnowledgeDigest`
+- `ellmos stack Ollama n8n USMC GARDENER task-master KnowledgeDigest`
 - `local-first AI knowledge stack Docker Compose`
 - `self-hosted research automation Ollama n8n`
 - `private local RAG server with Ollama and n8n`
@@ -365,11 +374,11 @@ Das Projekt ist nicht mit Eclipse LMOS, Llama Stack, LLemonStack, generischen n8
 
 ## Stack-Familie
 
-ellmos-stack ist der **All-in-one Starter-Stack** — die Referenz-Implementierung mit allem inklusive. Zukünftige spezialisierte Stacks bauen auf denselben Basis-Komponenten (Ollama + n8n + Rinnsal) auf und ergänzen domänenspezifische Erweiterungen:
+ellmos-stack ist der **All-in-one Starter-Stack** — die Referenz-Implementierung mit allem inklusive. Zukünftige spezialisierte Stacks bauen auf denselben Kompositionsprinzipien auf und ergänzen domänenspezifische Erweiterungen:
 
 | Stack | Fokus | Komponenten |
 |-------|-------|-------------|
-| **ellmos-stack** (dieses Repo) | All-in-one Wissen & Forschung | Ollama + n8n + Rinnsal + KnowledgeDigest + Research Pipeline |
+| **ellmos-stack** (dieses Repo) | All-in-one Wissen & Forschung | Ollama + n8n + USMC + GARDENER + task-master + KnowledgeDigest + Research Pipeline |
 | ellmos-research-stack *(geplant)* | Akademische Forschung & Literatur | + PubMed/arXiv-Pipelines, Bibliografie-Tools, Zitationsnetzwerke |
 | ellmos-dev-stack *(geplant)* | Softwareentwicklung & DevOps | + Code-Analyse, CI/CD-Integration, Repo-Monitoring |
 | ellmos-media-stack *(geplant)* | Content-Erstellung & Medien | + Transkription, Zusammenfassungs-Pipelines, Medienverarbeitung |
@@ -380,7 +389,9 @@ Jeder Stack ist ein eigenständiges Repo mit eigenem `docker-compose.yml` und `i
 
 | Komponente | Beschreibung |
 |------------|--------------|
-| [ellmos-ai/rinnsal](https://github.com/ellmos-ai/rinnsal) | Leichtgewichtiges KI-Memory & Task-Management |
+| [ellmos-ai/usmc](https://github.com/ellmos-ai/usmc) | Kuratiertes Agenten-Memory |
+| [ellmos-ai/gardener](https://github.com/ellmos-ai/gardener) | Organisches lokales Memory und Wissenssubstrat |
+| [ellmos-ai/task-master](https://github.com/ellmos-ai/task-master) | Getrennter Task-Zustand |
 | [ellmos-ai/n8n-workflow-manager](https://github.com/ellmos-ai/n8n-workflow-manager) | Prüft und versioniert die Workflows im n8n dieses Stacks: Graph-Viewer, Entscheidungsprotokoll, Rollback |
 | [file-bricks/knowledgedigest](https://github.com/file-bricks/knowledgedigest) | Dokumenten-Wissensdatenbank mit Web-UI |
 | [file-bricks/NoteSpaceLLM](https://github.com/file-bricks/NoteSpaceLLM) | Desktop-Dokumentenanalyse & RAG-Chat (verbindet sich mit dem Ollama des Stacks) |
