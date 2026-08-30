@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-Telegram Gateway -- Rezeption fuer den ellmos-stack.
+Telegram Gateway -- Rezeption für den ellmos-stack.
 
 Architektur:
-    1. Server empfaengt Telegram-Nachrichten (einziger Polling-Endpoint)
+    1. Server empfängt Telegram-Nachrichten (einziger Polling-Endpoint)
     2. Nachrichten fremder Chat-IDs werden verworfen
-    3. qwen3 antwortet lokal mit optionalem Rinnsal-Memory-Kontext
+    3. qwen3 antwortet lokal mit optionalem USMC-Memory-Kontext
 
 Env-Variablen:
-    RINNSAL_TELEGRAM_TOKEN  -- Bot-Token von @BotFather
+    ELLMOS_TELEGRAM_TOKEN   -- Bot-Token von @BotFather
+    RINNSAL_TELEGRAM_TOKEN  -- Nur als Legacy-Fallback
     TELEGRAM_OWNER_CHAT_ID  -- Deine Chat-ID (nur du darfst schreiben)
     OLLAMA_MODEL            -- LLM-Modell (default: qwen3:4b)
 
@@ -36,14 +37,17 @@ from services.env_config import load_env_file  # noqa: E402
 load_env_file(REPO_ROOT / ".env")
 
 # === Config ===
-BOT_TOKEN = os.environ.get("RINNSAL_TELEGRAM_TOKEN", "")
+BOT_TOKEN = os.environ.get("ELLMOS_TELEGRAM_TOKEN") or os.environ.get(
+    "RINNSAL_TELEGRAM_TOKEN", ""
+)
 OWNER_CHAT_ID = os.environ.get("TELEGRAM_OWNER_CHAT_ID", "")
 OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3:4b")
 
 DATA_DIR = REPO_ROOT / "data"
 PROMPT_FILE = REPO_ROOT / "config" / "system_prompt.txt"
-MEMORY_FILE = DATA_DIR / "rinnsal" / "rinnsal.db"
+USMC_DB = DATA_DIR / "usmc" / "usmc_memory.db"
+TASKPLAN_DB = DATA_DIR / "task-master" / "taskplan.db"
 HISTORY_FILE = DATA_DIR / "telegram_history.jsonl"
 
 TG_API = "https://api.telegram.org/bot{token}/{method}"
@@ -59,7 +63,7 @@ def validate_config() -> None:
 
     missing = []
     if not BOT_TOKEN:
-        missing.append("RINNSAL_TELEGRAM_TOKEN")
+        missing.append("ELLMOS_TELEGRAM_TOKEN (or legacy RINNSAL_TELEGRAM_TOKEN)")
     if not OWNER_CHAT_ID:
         missing.append("TELEGRAM_OWNER_CHAT_ID")
     if missing:
@@ -120,9 +124,9 @@ def load_system_prompt() -> str:
     tg_addon = """
 TELEGRAM-MODUS:
 - Du antwortest auf Telegram-Nachrichten des Besitzers
-- Halte Antworten kurz (max 2-3 Absaetze) -- Telegram ist kein Dokument
+- Halte Antworten kurz (max. 2–3 Absätze) -- Telegram ist kein Dokument
 - Nutze Markdown sparsam (fett, kursiv, Code -- kein HTML)
-- Bei Aufgaben: Bestaetigen und in Rinnsal-Tasks eintragen
+- Bei Aufgaben: Bestätigen und in task-master eintragen
 - Bei Fragen die du nicht beantworten kannst: Ehrlich sagen
 """
     return f"{base}\n{tg_addon}" if base else tg_addon.strip()
@@ -180,13 +184,13 @@ def save_to_history(role: str, content: str, chat_id: str = ""):
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
-def try_rinnsal_memory(_message: str):
-    """Versucht den kompakten Memory-Kontext aus Rinnsal zu laden."""
+def try_usmc_memory(_message: str):
+    """Versucht den kompakten kuratierten Memory-Kontext aus USMC zu laden."""
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-        from rinnsal.memory import api as memory_api
+        from usmc import api as memory_api
 
-        memory_api.init(db_path=str(MEMORY_FILE), agent_id="telegram-gateway")
+        memory_api.init(db_path=str(USMC_DB), agent_id="telegram-gateway")
         context = memory_api.context(max_items=3)
         if context:
             return context.strip()
@@ -240,9 +244,9 @@ def handle_command(text: str, chat_id: str) -> str:
     elif cmd == "/tasks":
         try:
             sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-            from rinnsal.tasks import api as tasks_api
+            from taskplan import api as tasks_api
 
-            tasks_api.init(db_path=str(MEMORY_FILE), agent_id="telegram-gateway")
+            tasks_api.init(db_path=str(TASKPLAN_DB), agent_id="telegram-gateway")
             open_tasks = tasks_api.list(status="open", limit=10)
             if not open_tasks:
                 return "Keine offenen Tasks."
@@ -262,7 +266,7 @@ def handle_command(text: str, chat_id: str) -> str:
 # === Main Loop ===
 
 def process_message(text: str, chat_id: str) -> str:
-    """Verarbeitet eine eingehende Nachricht und gibt Antwort zurueck."""
+    """Verarbeitet eine eingehende Nachricht und gibt die Antwort zurück."""
 
     # Commands
     if text.startswith("/"):
@@ -270,11 +274,11 @@ def process_message(text: str, chat_id: str) -> str:
         if response:
             return response
 
-    # Kontext aus Rinnsal Memory
-    memory_context = try_rinnsal_memory(text)
+    # Kuratierter Kontext aus USMC; Task-Zustand bleibt in task-master getrennt.
+    memory_context = try_usmc_memory(text)
     prompt = build_context_prompt(text)
     if memory_context:
-        prompt = f"Relevanter Kontext aus dem Gedaechtnis:\n{memory_context}\n\n{prompt}"
+        prompt = f"Relevanter Kontext aus dem Gedächtnis:\n{memory_context}\n\n{prompt}"
 
     # Ollama
     response = ask_ollama(prompt)

@@ -28,7 +28,9 @@ fi
 VENV_DIR="$INSTALL_DIR/venv"
 DATA_DIR="$INSTALL_DIR/data"
 STACK_USER="ellmos-stack"
-RINNSAL_COMMIT="2ac63310ddf74afbcdae170967effa95be5ca9e0"
+USMC_COMMIT="f732e1359d9173aee3ff569403bb58ab416bb3ee"
+GARDENER_COMMIT="f57fc8df3336b9e4c6bdf170048fc3f417643541"
+TASK_MASTER_COMMIT="002739d85d0f731172c6845bd1caa5cd305e7481"
 KNOWLEDGEDIGEST_COMMIT="176e304ab64c55cbe02fdb998e663bc7e64ebf74"
 
 echo "============================================="
@@ -71,7 +73,7 @@ if ! id -u "$STACK_USER" > /dev/null 2>&1; then
     useradd --system --home-dir "$DATA_DIR" --shell /usr/sbin/nologin "$STACK_USER"
 fi
 mkdir -p "$INSTALL_DIR"/{config,services,data}
-mkdir -p "$DATA_DIR"/{knowledgedigest/{inbox,archive},rinnsal,logs}
+mkdir -p "$DATA_DIR"/{knowledgedigest/{inbox,archive},usmc,gardener,task-master,logs}
 chown -R "$STACK_USER:$STACK_USER" "$DATA_DIR"
 
 # === Copy files ===
@@ -100,9 +102,17 @@ python3 -m venv "$VENV_DIR"
 "$VENV_DIR/bin/python" -m pip --version > /dev/null
 
 # Install components
-echo "  Installing Rinnsal..."
+echo "  Installing USMC..."
 "$VENV_DIR/bin/pip" install --quiet \
-    "git+https://github.com/ellmos-ai/rinnsal.git@$RINNSAL_COMMIT"
+    "git+https://github.com/ellmos-ai/usmc.git@$USMC_COMMIT"
+
+echo "  Installing GARDENER..."
+"$VENV_DIR/bin/pip" install --quiet \
+    "git+https://github.com/ellmos-ai/gardener.git@$GARDENER_COMMIT"
+
+echo "  Installing task-master..."
+"$VENV_DIR/bin/pip" install --quiet \
+    "git+https://github.com/ellmos-ai/task-master.git@$TASK_MASTER_COMMIT"
 
 echo "  Installing KnowledgeDigest..."
 "$VENV_DIR/bin/pip" install --quiet \
@@ -226,7 +236,9 @@ echo ""
 echo "Data directories:"
 echo "  KnowledgeDigest:  $DATA_DIR/knowledgedigest/"
 echo "  Document inbox:   $DATA_DIR/knowledgedigest/inbox/"
-echo "  Rinnsal:          $DATA_DIR/rinnsal/"
+echo "  USMC:             $DATA_DIR/usmc/"
+echo "  GARDENER:         $DATA_DIR/gardener/"
+echo "  task-master:      $DATA_DIR/task-master/"
 echo ""
 echo "Next steps:"
 echo "  1. Open n8n and set up your first workflow"

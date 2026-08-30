@@ -29,7 +29,7 @@ This proves repository structure and offline behavior. It does not claim that Do
 Run the manual GitHub Actions workflow **Public stack release gate**. Its inputs are exact Ollama and n8n image tags. The workflow:
 
 - repeats the offline checks on Linux;
-- installs the exact Rinnsal and KnowledgeDigest commits from `install.sh` and smokes their real entrypoints and APIs;
+- installs the exact USMC, GARDENER, task-master, and KnowledgeDigest commits from `install.sh` and smokes their real entrypoints and APIs with separate state paths;
 - rejects floating image tags;
 - runs `docker compose config` with the selected tags;
 - starts Ollama and n8n, probes their local health endpoints, and records the commit and images;

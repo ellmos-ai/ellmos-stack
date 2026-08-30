@@ -45,6 +45,12 @@ EVIDENCE_KEYS = (
 )
 VERSION_TAG = re.compile(r"^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z][0-9A-Za-z._-]*)?$")
 IMAGE_DIGEST = re.compile(r"^[^@\s]+@sha256:[0-9a-f]{64}$")
+PINNED_COMPONENTS = {
+    "USMC": "memory.curated",
+    "GARDENER": "memory.organic",
+    "task-master": "tasks.default",
+    "KnowledgeDigest": "knowledge.search.default",
+}
 
 
 class Gate:
@@ -92,6 +98,31 @@ def check_static(gate: Gate) -> None:
     release_gate = manifest.get("release_gate", {})
     gate.require(release_gate.get("document") == "RELEASE_GATE.md", "manifest links release gate document")
     gate.require(release_gate.get("requires_pinned_images") is True, "manifest requires pinned images")
+    component_roles = {
+        component.get("id"): component.get("role")
+        for component in manifest.get("components", [])
+    }
+    gate.require(
+        component_roles == PINNED_COMPONENTS,
+        "manifest declares the specialized memory, task, and knowledge roles",
+    )
+    gate.require(
+        set(manifest.get("required_roles", [])) == set(PINNED_COMPONENTS.values()),
+        "manifest requires every specialized module role",
+    )
+
+    installer = (REPO_ROOT / "install.sh").read_text(encoding="utf-8")
+    for variable in (
+        "USMC_COMMIT",
+        "GARDENER_COMMIT",
+        "TASK_MASTER_COMMIT",
+        "KNOWLEDGEDIGEST_COMMIT",
+    ):
+        gate.require(
+            bool(re.search(rf'^{variable}="[0-9a-f]{{40}}"$', installer, re.MULTILINE)),
+            f"installer pins {variable} to a full commit",
+        )
+    gate.require("RINNSAL_COMMIT" not in installer, "installer no longer installs Rinnsal")
 
     compose = _load_yaml(REPO_ROOT / "docker-compose.yml")
     services = compose.get("services", {})

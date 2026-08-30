@@ -4,16 +4,23 @@
   "status": "active",
   "visibility": "public",
   "components": [
+    {"id": "USMC", "role": "memory.curated"},
+    {"id": "GARDENER", "role": "memory.organic"},
+    {"id": "task-master", "role": "tasks.default"},
     {"id": "KnowledgeDigest", "role": "knowledge.search.default"}
   ],
-  "required_roles": ["knowledge.search.default"],
+  "required_roles": [
+    "memory.curated",
+    "memory.organic",
+    "tasks.default",
+    "knowledge.search.default"
+  ],
   "skills": [],
   "mcp_servers": [],
   "nested_stacks": [],
   "external_components": [
     {"id": "ollama", "kind": "model-runtime", "role": "local-inference", "source": "docker"},
     {"id": "n8n", "kind": "workflow-engine", "role": "automation", "source": "docker"},
-    {"id": "rinnsal", "kind": "legacy-runtime", "role": "memory-and-tasks", "source": "pinned-git"},
     {"id": "research-pipeline", "kind": "included-service", "role": "research", "source": "repository"},
     {"id": "pubmed", "kind": "literature-api", "role": "paper-search", "source": "https"},
     {"id": "arxiv", "kind": "literature-api", "role": "paper-search", "source": "https"}

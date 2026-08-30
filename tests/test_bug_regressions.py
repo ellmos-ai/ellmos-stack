@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import re
 import subprocess
@@ -251,11 +252,19 @@ class TestInstallerAndExposure(unittest.TestCase):
 
     def test_python_components_are_pinned_to_commits(self):
         installer = (REPO_ROOT / "install.sh").read_text(encoding="utf-8")
-        self.assertRegex(installer, r'RINNSAL_COMMIT="[0-9a-f]{40}"')
+        self.assertRegex(installer, r'USMC_COMMIT="[0-9a-f]{40}"')
+        self.assertRegex(installer, r'GARDENER_COMMIT="[0-9a-f]{40}"')
+        self.assertRegex(installer, r'TASK_MASTER_COMMIT="[0-9a-f]{40}"')
         self.assertRegex(installer, r'KNOWLEDGEDIGEST_COMMIT="[0-9a-f]{40}"')
-        self.assertIn("rinnsal.git@$RINNSAL_COMMIT", installer)
+        self.assertIn("usmc.git@$USMC_COMMIT", installer)
+        self.assertIn("gardener.git@$GARDENER_COMMIT", installer)
+        self.assertIn("task-master.git@$TASK_MASTER_COMMIT", installer)
         self.assertIn("knowledgedigest.git@$KNOWLEDGEDIGEST_COMMIT", installer)
-        self.assertNotRegex(installer, r'pip" install --quiet (rinnsal|knowledgedigest)(?:\s|$)')
+        self.assertNotIn("RINNSAL_COMMIT", installer)
+        self.assertNotRegex(
+            installer,
+            r'pip" install --quiet (usmc|gardener-os|taskplan|knowledgedigest)(?:\s|$)',
+        )
 
     def test_runtime_services_do_not_run_as_root(self):
         installer = (REPO_ROOT / "install.sh").read_text(encoding="utf-8")
@@ -311,28 +320,55 @@ class TestInstallerAndExposure(unittest.TestCase):
                 (REPO_ROOT / readme_name).read_text(encoding="utf-8"),
             )
 
-    def test_rinnsal_api_contract_is_current(self):
+    def test_memory_and_task_apis_have_separate_state(self):
         gateway = (SERVICES_DIR / "telegram_gateway.py").read_text(encoding="utf-8")
-        self.assertIn("from rinnsal.memory import api as memory_api", gateway)
-        self.assertIn("from rinnsal.tasks import api as tasks_api", gateway)
+        self.assertIn("from usmc import api as memory_api", gateway)
+        self.assertIn("from taskplan import api as tasks_api", gateway)
         self.assertIn('agent_id="telegram-gateway"', gateway)
         self.assertIn("memory_api.context(max_items=3)", gateway)
-        self.assertNotIn("from rinnsal import memory", gateway)
-        self.assertNotIn("from rinnsal import tasks", gateway)
-        self.assertNotIn("memory.search(", gateway)
+        self.assertIn('USMC_DB = DATA_DIR / "usmc" / "usmc_memory.db"', gateway)
+        self.assertIn('TASKPLAN_DB = DATA_DIR / "task-master" / "taskplan.db"', gateway)
+        self.assertIn("db_path=str(USMC_DB)", gateway)
+        self.assertIn("db_path=str(TASKPLAN_DB)", gateway)
+        self.assertNotIn("from rinnsal", gateway)
 
         for readme_name in ("README.md", "README_de.md"):
             readme = (REPO_ROOT / readme_name).read_text(encoding="utf-8")
             with self.subTest(readme=readme_name):
-                self.assertIn("from rinnsal.memory import api as memory", readme)
-                self.assertIn("from rinnsal.tasks import api as tasks", readme)
-                self.assertIn(
-                    "from rinnsal.auto.ollama_runner import OllamaRunner", readme
-                )
-                self.assertIn('category="project"', readme)
-                self.assertNotIn('category="infra"', readme)
-                self.assertNotIn("from rinnsal import memory, tasks", readme)
-                self.assertNotIn("from rinnsal.auto import OllamaRunner", readme)
+                self.assertIn("from usmc import api as memory", readme)
+                self.assertIn("from taskplan import api as tasks", readme)
+                self.assertIn("data/usmc/usmc_memory.db", readme)
+                self.assertIn("data/gardener", readme)
+                self.assertIn("data/task-master/taskplan.db", readme)
+
+    def test_manifest_resolves_specialized_roles_without_rinnsal(self):
+        manifest = json.loads((REPO_ROOT / "stack.v2.json").read_text(encoding="utf-8"))
+        roles = {item["id"]: item["role"] for item in manifest["components"]}
+        self.assertEqual(roles["USMC"], "memory.curated")
+        self.assertEqual(roles["GARDENER"], "memory.organic")
+        self.assertEqual(roles["task-master"], "tasks.default")
+        self.assertEqual(roles["KnowledgeDigest"], "knowledge.search.default")
+        self.assertEqual(set(manifest["required_roles"]), set(roles.values()))
+        self.assertNotIn("rinnsal", json.dumps(manifest).lower())
+
+    def test_telegram_token_prefers_new_name_and_accepts_legacy_fallback(self):
+        with mock.patch.dict(
+            os.environ,
+            {
+                "ELLMOS_TELEGRAM_TOKEN": "preferred-token",
+                "RINNSAL_TELEGRAM_TOKEN": "legacy-token",
+            },
+        ):
+            preferred = _load_service("telegram_gateway.py", "telegram_preferred_token")
+        self.assertEqual(preferred.BOT_TOKEN, "preferred-token")
+
+        with mock.patch.dict(
+            os.environ,
+            {"RINNSAL_TELEGRAM_TOKEN": "legacy-token"},
+            clear=True,
+        ):
+            legacy = _load_service("telegram_gateway.py", "telegram_legacy_token")
+        self.assertEqual(legacy.BOT_TOKEN, "legacy-token")
 
 
 class TestReleaseEvidence(unittest.TestCase):
@@ -382,8 +418,10 @@ class TestReleaseEvidence(unittest.TestCase):
         self.assertIn("OLLAMA_IMAGE_DIGEST", workflow)
         self.assertIn('"security_reviewer": os.environ["GITHUB_ACTOR"]', workflow)
         self.assertIn("python -m KnowledgeDigest --web --help", workflow)
-        self.assertIn("from rinnsal.memory import api as memory", workflow)
-        self.assertIn("from rinnsal.tasks import api as tasks", workflow)
+        self.assertIn("from usmc import api as memory", workflow)
+        self.assertIn("from gardener import Gardener", workflow)
+        self.assertIn("from taskplan import api as tasks", workflow)
+        self.assertNotIn("from rinnsal", workflow)
 
 
 if __name__ == "__main__":
