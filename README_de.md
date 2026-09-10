@@ -5,12 +5,17 @@
 **🇬🇧 [English Version](README.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![Tests bestanden](https://img.shields.io/badge/Tests-54%20bestanden-brightgreen.svg)](tests)
+[![Tests bestanden](https://img.shields.io/badge/Tests-61%20bestanden-brightgreen.svg)](tests)
 [![Neuestes Release](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![ellmos ecosystem](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
+[![open-bricks umbrella](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
+[![Architektur: Docker Compose](https://img.shields.io/badge/architecture-Docker%20Compose-2496ED.svg?logo=docker&logoColor=white)](#architektur)
+[![Sicherheit: Local-First](https://img.shields.io/badge/security-local--first-success.svg)](#sicherheitshinweise)
 [![LLM-Ready Context](https://img.shields.io/badge/LLM--Ready-llms.txt-blue.svg)](llms.txt)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+[Schnellstart](#schnellstart) • [Architektur](#architektur) • [Workflows & Sequenz](#workflows--sequenz) • [Stack-Familie](#stack-familie) • [Sicherheitshinweise](#sicherheitshinweise) • [llms.txt](llms.txt)
 
 Ein selbst gehosteter KI-Stack für Forschung und Wissensmanagement. Kombiniert ein lokales LLM, Workflow-Automatisierung, persistenten Speicher und eine Wissensdatenbank in einem deploybaren Setup.
 
@@ -275,6 +280,33 @@ Cron:
 
 Daten werden in `/opt/ellmos-stack/data/` gespeichert (SQLite-Datenbanken, Dokumentdateien).
 
+## Workflows & Sequenz
+
+Das nachfolgende Sequenzdiagramm veranschaulicht das Zusammenspiel von automatisierter Paper-Recherche, Dokumenten-Ingestion, lokaler Modell-Inferenz und Wissenssicherung:
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor User as "Operator / Forscher"
+  participant Pipeline as "research_pipeline.py"
+  participant Ingest as "auto_ingest.py"
+  participant LLM as "Ollama LLM (qwen3)"
+  participant KD as "KnowledgeDigest (Port 8787)"
+  participant Memory as "USMC & GARDENER"
+  participant Tasks as "task-master"
+
+  Note over User,Tasks: "Paper-Recherche- und Ingestion-Workflow"
+  User->>Pipeline: "Suchanfrage ausführen (z. B. PubMed / arXiv)"
+  Pipeline->>Pipeline: "Paper-Metadaten und Abstracts abrufen"
+  Pipeline->>LLM: "Synthese und strukturierte Zusammenfassung anfordern"
+  LLM-->>Pipeline: "Extrahierte Kernaussagen zurückgeben"
+  Pipeline->>KD: "Markdown-Bericht im Inbox-Verzeichnis ablegen"
+  Ingest->>KD: "Inbox-Dateien automatisch in SQLite FTS5 indexieren"
+  Pipeline->>Memory: "Wichtige Erkenntnisse sichern (kuratierte Fakten & organische Notizen)"
+  Pipeline->>Tasks: "Follow-up-Forschungsaufgaben eintragen"
+  User->>KD: "Recherche und Volltextsuche via Web-UI (localhost:8787)"
+```
+
 ## Anpassung
 
 ### Anderes LLM-Modell
@@ -374,16 +406,22 @@ Das Projekt ist nicht mit Eclipse LMOS, Llama Stack, LLemonStack, generischen n8
 
 ## Stack-Familie
 
-ellmos-stack ist der **All-in-one Starter-Stack** — die Referenz-Implementierung mit allem inklusive. Zukünftige spezialisierte Stacks bauen auf denselben Kompositionsprinzipien auf und ergänzen domänenspezifische Erweiterungen:
+> **Kanonischer Katalog:** Die vollständige, aktuelle Übersicht aller ellmos-Stacks liegt unter
+> **[ellmos-ai/stacks](https://github.com/ellmos-ai/stacks)** — dem Stacks-Übersichts-Repository
+> (Katalog, gemeinsames Manifest-Schema, Dokumentation). Die nachfolgende Tabelle ist ein
+> praktischer Auszug; im Zweifelsfall ist der Katalog maßgeblich.
+
+ellmos-stack ist der **All-in-one Starter-Stack** — die Referenz-Implementierung mit allem inklusive. Schwester-Stacks bauen auf denselben Kompositionsprinzipien mit domänenspezifischem Fokus auf:
 
 | Stack | Fokus | Komponenten |
 |-------|-------|-------------|
 | **ellmos-stack** (dieses Repo) | All-in-one Wissen & Forschung | Ollama + n8n + USMC + GARDENER + task-master + KnowledgeDigest + Research Pipeline |
+| [agent-ops-stack](https://github.com/ellmos-ai/agent-ops-stack) | Multi-Agent-Operations (Locks, Tickets, Decision-Avatar, Memory) | ticket-master + lock-master + build-your-users-mind + skills + controlcenter-mcp + homebase-mcp |
 | ellmos-research-stack *(geplant)* | Akademische Forschung & Literatur | + PubMed/arXiv-Pipelines, Bibliografie-Tools, Zitationsnetzwerke |
 | ellmos-dev-stack *(geplant)* | Softwareentwicklung & DevOps | + Code-Analyse, CI/CD-Integration, Repo-Monitoring |
 | ellmos-media-stack *(geplant)* | Content-Erstellung & Medien | + Transkription, Zusammenfassungs-Pipelines, Medienverarbeitung |
 
-Jeder Stack ist ein eigenständiges Repo mit eigenem `docker-compose.yml` und `install.sh`. Sie teilen die Basis-Infrastruktur, fügen aber domänenspezifische Tools und Workflows hinzu.
+Jeder Stack ist ein eigenständiges Repo mit eigenem `docker-compose.yml` und `install.sh`. Sie teilen das Kompositionsprinzip („Installation IST der Bauplan"), fügen aber domänenspezifische Tools und Workflows hinzu.
 
 ## Teil des ellmos-Ökosystems
 
@@ -400,3 +438,13 @@ Jeder Stack ist ein eigenständiges Repo mit eigenem `docker-compose.yml` und `i
 ## Lizenz
 
 MIT
+
+---
+
+## Haftung / Liability
+
+Dieses Projekt ist eine **unentgeltliche Open-Source-Schenkung** im Sinne der §§ 516 ff. BGB. Die Haftung des Urhebers ist gemäß **§ 521 BGB** auf **Vorsatz und grobe Fahrlässigkeit** beschränkt. Ergänzend gelten die Haftungsausschlüsse aus GPL-3.0 / MIT / Apache-2.0 §§ 15–16 (je nach gewählter Lizenz).
+
+Nutzung auf eigenes Risiko. Keine Wartungszusage, keine Verfügbarkeitsgarantie, keine Gewähr für Fehlerfreiheit oder Eignung für einen bestimmten Zweck.
+
+This project is an unpaid open-source donation. Liability is limited to intent and gross negligence (§ 521 German Civil Code). Use at your own risk. No warranty, no maintenance guarantee, no fitness-for-purpose assumed.

@@ -2,16 +2,20 @@
 
 <img src="assets/banner_v2.png" width="100%" alt="ellmos-stack banner">
 
-
 **🇩🇪 [Deutsche Version](README_de.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![Tests passed](https://img.shields.io/badge/tests-54%20passed-brightgreen.svg)](tests)
+[![Tests passed](https://img.shields.io/badge/tests-61%20passed-brightgreen.svg)](tests)
 [![Latest release](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![ellmos ecosystem](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
+[![open-bricks umbrella](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
+[![Architecture: Docker Compose](https://img.shields.io/badge/architecture-Docker%20Compose-2496ED.svg?logo=docker&logoColor=white)](#architecture)
+[![Security: Local-First](https://img.shields.io/badge/security-local--first-success.svg)](#security-notes)
 [![LLM-Ready Context](https://img.shields.io/badge/LLM--Ready-llms.txt-blue.svg)](llms.txt)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+[Quickstart](#quickstart) • [Architecture](#architecture) • [Workflows & Sequence](#workflows--sequence) • [Stack Family](#stack-family) • [Security](#security-notes) • [llms.txt](llms.txt)
 
 A self-hosted AI research and knowledge management stack. Combines a local LLM, workflow automation, persistent memory, and a knowledge base into one deployable setup.
 
@@ -274,6 +278,33 @@ Cron:
 ```
 
 Data is stored in `/opt/ellmos-stack/data/` (SQLite databases, document files).
+
+## Workflows & Sequence
+
+The sequence diagram below details how automated paper queries, document ingestion, local LLM summarization, and memory updates coordinate across the stack:
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor User as "Operator / Researcher"
+  participant Pipeline as "research_pipeline.py"
+  participant Ingest as "auto_ingest.py"
+  participant LLM as "Ollama LLM (qwen3)"
+  participant KD as "KnowledgeDigest (Port 8787)"
+  participant Memory as "USMC & GARDENER"
+  participant Tasks as "task-master"
+
+  Note over User,Tasks: "Paper Research & Ingestion Flow"
+  User->>Pipeline: "Run query (e.g. PubMed / arXiv search)"
+  Pipeline->>Pipeline: "Fetch paper metadata & abstracts"
+  Pipeline->>LLM: "Prompt for synthesis & structured summary"
+  LLM-->>Pipeline: "Return summarized findings"
+  Pipeline->>KD: "Save markdown report to inbox"
+  Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
+  Pipeline->>Memory: "Persist key findings (curated facts & organic notes)"
+  Pipeline->>Tasks: "Register follow-up research tasks"
+  User->>KD: "Search & review via web UI (localhost:8787)"
+```
 
 ## Customization
 
