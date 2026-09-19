@@ -4,12 +4,26 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ellmos-stack"
-version = "0.1.0"
+version = "0.1.1"
 description = "Self-hosted AI research and knowledge stack combining Ollama, n8n, USMC, GARDENER, task-master, and KnowledgeDigest."
 readme = "README.md"
 license = {text = "MIT"}
+license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]
 requires-python = ">=3.10"
 authors = [{name = "ellmos-ai / BACH Contributors"}]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Installation/Setup",
+]
 keywords = [
     "ellmos",
     "ai-stack",
@@ -31,6 +45,12 @@ Homepage = "https://github.com/ellmos-ai/ellmos-stack#readme"
 Repository = "https://github.com/ellmos-ai/ellmos-stack"
 Issues = "https://github.com/ellmos-ai/ellmos-stack/issues"
 Documentation = "https://github.com/ellmos-ai/ellmos-stack/blob/master/README.md"
+Changelog = "https://github.com/ellmos-ai/ellmos-stack/blob/master/CHANGELOG.md"
+"Third-Party Licenses" = "https://github.com/ellmos-ai/ellmos-stack/blob/master/THIRD_PARTY_LICENSES.md"
+"Parent Organization" = "https://github.com/ellmos-ai"
+"Umbrella Ecosystem" = "https://github.com/open-bricks"
+"LLM Ready" = "https://raw.githubusercontent.com/ellmos-ai/ellmos-stack/master/llms.txt"
+Security = "https://github.com/ellmos-ai/ellmos-stack/blob/master/README.md#security-notes"
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "ruff>=0.4"]

@@ -34,4 +34,34 @@ TODO.md
 
 # Interne Pflege-/Wartungsprotokolle und Sperren
 _after-care/
+LOCK
+LOCK.*
 LOCK*.txt
+LOCK.permissions.json
+LOCK.user.*
+LOCK.until.*
+LOCK.condition.*
+
+# Multi-Host Sync & Conflict Markers
+*conflicted copy*
+* (Kopie)*
+* (Copy)*
+*-ASUS*
+*-ASUS-GEI*
+*-LAPTOP*
+*-WORKSTATION*
+*-WORKSTATION-LG*
+*-Mac Studio*
+*-MacBook*
+
+# Caches & Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.coverage
+htmlcov/
+dist/
+build/
+uv.lock
+!package-lock.json

@@ -3,6 +3,30 @@
 Released versions match the [Git tags](https://github.com/ellmos-ai/ellmos-stack/tags)
 and the [GitHub releases](https://github.com/ellmos-ai/ellmos-stack/releases).
 
+## [0.1.1] - 2026-09-19
+
+- **CI Matrix & Workflow Hardening**:
+  - Expanded test matrix in `.github/workflows/tests.yml` to test across `ubuntu-latest` and `windows-latest` on Python 3.10, 3.11, 3.12, and 3.13.
+  - Added least-privilege `permissions: contents: read`, `timeout-minutes: 15`, and `concurrency: { group: ..., cancel-in-progress: true }`.
+  - Added integrated steps for `ruff check .`, `compileall -q services tests tools`, `pytest`, `unittest`, and `python tools/check_release_gate.py`.
+  - Hardened `.github/workflows/stale.yml`, `welcome.yml`, `auto-assign.yml`, `label-sync.yml`, and `release-gate.yml` with timeouts and cancellation concurrency.
+  - Corrected action versions to stable `actions/checkout@v4` and `actions/setup-python@v5`.
+- **PEP 621 Standardisation**:
+  - Bumped version to `0.1.1` in `pyproject.toml`.
+  - Added `license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]`.
+  - Added standard PyPI classifiers for Python 3.10–3.13, MIT License, AI Topic, and System Setup.
+  - Standardized `[project.urls]` including Documentation, Repository, Issues, Changelog, Third-Party Licenses, Parent Organization, Umbrella Ecosystem, LLM Ready, and Security.
+- **Software Bill of Materials (SBOM) & Governance**:
+  - Added `THIRD_PARTY_LICENSES.md` providing Level 1 SBOM documenting orchestration engines (Ollama, n8n, PostgreSQL), pinned stack modules (USMC, GARDENER, task-master, KnowledgeDigest), runtime libraries, and public literature APIs (PubMed, arXiv).
+  - Codified `RunAsInvoker` non-elevation certification and 10 governance invariants (`INV-LOCAL-01` through `INV-SLA-10`).
+- **Repository Hygiene & Multi-Host Protection**:
+  - Hardened `.gitignore` to prevent tracking multi-host sync conflicts (`*conflicted copy*`, `*-ASUS*`, `*-WORKSTATION*`, etc.), lock system markers (`LOCK*`), and modern build caches (`.ruff_cache/`, `uv.lock`).
+- **Documentation & LLM Context Parity**:
+  - Refreshed `llms.txt` verification timestamp to 2026-09-19 and updated version references.
+  - Synchronized Shields.io test suite and release badges across English and German README files.
+- **Contract & Metadata Test Expansion**:
+  - Expanded `tests/test_metadata.py` with comprehensive assertions validating PEP 621 metadata, CI workflow safety, SBOM presence, non-elevation invariant, and cross-file version synchronization.
+
 ## Unreleased
 
 - Enhanced repository discoverability (Pfad B), added umbrella (`open-bricks`), architecture, and security badges, introduced interactive Mermaid sequence diagrams for research ingestion pipelines, synchronized German README parity (stack catalog, liability notice), refreshed `llms.txt` verification timestamp, and added comprehensive metadata test suite [G 2026-09-10].

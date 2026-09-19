@@ -2,8 +2,8 @@
 
 > Machine-readable project context for LLMs, crawlers, and agentic coding tools.
 
-Last checked: 2026-09-10
-Latest release: v0.1.0 (2026-07-23) -- public stack release gate baseline. See CHANGELOG.md.
+Last checked: 2026-09-19
+Latest release: v0.1.1 (2026-09-19) -- hardened CI matrix, PEP 621 metadata, Level 1 SBOM, and expanded contract test suite. See CHANGELOG.md.
 
 ## Canonical Links
 

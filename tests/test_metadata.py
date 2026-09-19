@@ -92,5 +92,115 @@ class TestLlmsTxtAndMetadata(unittest.TestCase):
         self.assertIn('"docker-compose"', content)
 
 
+class TestPEP621AndSBOM(unittest.TestCase):
+    """Verify PEP 621 metadata standards, SBOM, and RunAsInvoker non-elevation."""
+
+    def test_pep621_specification(self):
+        content = PYPROJECT.read_text(encoding="utf-8")
+        self.assertIn('version = "0.1.1"', content)
+        self.assertIn('license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]', content)
+        self.assertIn('"Programming Language :: Python :: 3.10"', content)
+        self.assertIn('"Programming Language :: Python :: 3.13"', content)
+        self.assertIn('"License :: OSI Approved :: MIT License"', content)
+
+        required_urls = [
+            "Homepage",
+            "Repository",
+            "Issues",
+            "Documentation",
+            "Changelog",
+            "Third-Party Licenses",
+            "Parent Organization",
+            "Umbrella Ecosystem",
+            "LLM Ready",
+            "Security",
+        ]
+        for url_key in required_urls:
+            with self.subTest(url_key=url_key):
+                self.assertIn(f'"{url_key}" = ' if " " in url_key else f"{url_key} = ", content)
+
+    def test_third_party_licenses_sbom_exists(self):
+        sbom_file = REPO_ROOT / "THIRD_PARTY_LICENSES.md"
+        self.assertTrue(sbom_file.exists(), "THIRD_PARTY_LICENSES.md missing")
+        content = sbom_file.read_text(encoding="utf-8")
+        self.assertIn("Level 1 SBOM", content)
+        self.assertIn("RunAsInvoker", content)
+        self.assertIn("Ollama", content)
+        self.assertIn("n8n", content)
+        self.assertIn("USMC", content)
+        self.assertIn("GARDENER", content)
+        self.assertIn("task-master", content)
+        self.assertIn("KnowledgeDigest", content)
+        for i in range(1, 11):
+            inv_id = f"INV-LOCAL-{i:02d}" if i <= 9 else "INV-SLA-10"
+            with self.subTest(invariant=inv_id):
+                self.assertIn(inv_id, content, f"Invariant {inv_id} missing in SBOM")
+
+    def test_gitignore_patterns(self):
+        gitignore_file = REPO_ROOT / ".gitignore"
+        self.assertTrue(gitignore_file.exists(), ".gitignore missing")
+        content = gitignore_file.read_text(encoding="utf-8")
+        required_patterns = [
+            "LOCK",
+            "LOCK.*",
+            "LOCK*.txt",
+            "LOCK.user.*",
+            "*conflicted copy*",
+            "*-ASUS*",
+            "*-WORKSTATION*",
+            ".pytest_cache/",
+            ".ruff_cache/",
+            "uv.lock",
+        ]
+        for pattern in required_patterns:
+            with self.subTest(pattern=pattern):
+                self.assertIn(pattern, content, f"Pattern {pattern} missing in .gitignore")
+
+    def test_bilingual_liability_disclaimer(self):
+        """Both README files must feature § 521 BGB statutory liability exclusion."""
+        en_content = README_EN.read_text(encoding="utf-8")
+        de_content = README_DE.read_text(encoding="utf-8")
+        self.assertIn("521 BGB", en_content)
+        self.assertIn("521 BGB", de_content)
+
+    def test_version_cross_file_consistency(self):
+        pyproject_content = PYPROJECT.read_text(encoding="utf-8")
+        changelog_content = (REPO_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        llms_content = LLMS_TXT.read_text(encoding="utf-8")
+
+        self.assertIn('version = "0.1.1"', pyproject_content)
+        self.assertIn("## [0.1.1] - 2026-09-19", changelog_content)
+        self.assertIn("v0.1.1 (2026-09-19)", llms_content)
+        self.assertIn("Last checked: 2026-09-19", llms_content)
+
+
+class TestCIWorkflowHardening(unittest.TestCase):
+    """Verify GitHub Actions CI workflows are hardened with timeouts, concurrency, and permissions."""
+
+    def test_tests_workflow_hardened(self):
+        tests_yml = REPO_ROOT / ".github" / "workflows" / "tests.yml"
+        self.assertTrue(tests_yml.exists(), "tests.yml missing")
+        content = tests_yml.read_text(encoding="utf-8")
+        self.assertIn("permissions:\n  contents: read", content)
+        self.assertIn("concurrency:", content)
+        self.assertIn("cancel-in-progress: true", content)
+        self.assertIn("timeout-minutes: 15", content)
+        self.assertIn("ubuntu-latest", content)
+        self.assertIn("windows-latest", content)
+        self.assertIn("'3.13'", content)
+        self.assertIn("ruff check .", content)
+        self.assertIn("pytest", content)
+        self.assertIn("check_release_gate.py", content)
+
+    def test_all_workflows_have_concurrency_and_timeout(self):
+        workflows_dir = REPO_ROOT / ".github" / "workflows"
+        self.assertTrue(workflows_dir.exists(), "workflows directory missing")
+        for yml_file in workflows_dir.glob("*.yml"):
+            with self.subTest(workflow=yml_file.name):
+                content = yml_file.read_text(encoding="utf-8")
+                self.assertIn("concurrency:", content, f"Missing concurrency in {yml_file.name}")
+                self.assertIn("timeout-minutes:", content, f"Missing timeout-minutes in {yml_file.name}")
+
+
 if __name__ == "__main__":
     unittest.main()
