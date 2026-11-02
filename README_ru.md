@@ -2,7 +2,7 @@
 
 <img src="assets/banner_v2.png" width="100%" alt="Баннер ellmos-stack">
 
-**[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md)**
+**[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md) · [हिन्दी](README_hi.md) · [العربية](README_ar.md)**
 
 [![Тесты ellmos-stack](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
 [![Тесты пройдены](https://img.shields.io/badge/tests-68%20passed-brightgreen.svg)](tests)
