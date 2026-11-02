@@ -99,5 +99,7 @@ This is the offline preflight only. `RELEASE_GATE.md` and `.github/workflows/rel
 - 简体中文: [README_zh.md](README_zh.md)
 - हिन्दी: [README_hi.md](README_hi.md)
 - العربية: [README_ar.md](README_ar.md)
+- বাংলা: [README_bn.md](README_bn.md)
+- Português: [README_pt.md](README_pt.md)
 
 These are documentation translations; they do not add runtime interface locales.

@@ -29,7 +29,7 @@ and the [GitHub releases](https://github.com/ellmos-ai/ellmos-stack/releases).
 
 ## Unreleased
 
-- Added complete Spanish, French, Japanese, Russian, Simplified Chinese, Hindi, and Arabic README translations, reciprocal nine-language navigation, and an indexed documentation-language list in llms.txt (2026-11-02). No runtime or release-version changes.
+- Added complete Spanish, French, Japanese, Russian, Simplified Chinese, Hindi, Arabic, Bengali, and Portuguese README translations, reciprocal eleven-language navigation, and an indexed documentation-language list in llms.txt (2026-11-02). No runtime or release-version changes.
 
 - Enhanced repository discoverability (Pfad B), added umbrella (`open-bricks`), architecture, and security badges, introduced interactive Mermaid sequence diagrams for research ingestion pipelines, synchronized German README parity (stack catalog, liability notice), refreshed `llms.txt` verification timestamp, and added comprehensive metadata test suite [G 2026-09-10].
 - Replaced the combined Rinnsal memory/task runtime with pinned USMC (`memory.curated`), GARDENER (`memory.organic`), and task-master (`tasks.default`) modules, kept KnowledgeDigest as `knowledge.search.default`, separated runtime state, retained `RINNSAL_TELEGRAM_TOKEN` only as a migration fallback, and verified 54/54 tests plus 27/27 offline release checks [2026-08-26].
