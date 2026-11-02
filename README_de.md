@@ -2,7 +2,7 @@
 
 <img src="assets/banner_v2.png" width="100%" alt="ellmos-stack Banner">
 
-**🇬🇧 [English Version](README.md)**
+**[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
 [![Tests bestanden](https://img.shields.io/badge/Tests-68%20bestanden-brightgreen.svg)](tests)
