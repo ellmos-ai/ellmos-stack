@@ -283,7 +283,7 @@ Data is stored in `/opt/ellmos-stack/data/` (SQLite databases, document files).
 
 ## Workflows & Sequence
 
-The sequence diagram below details how automated paper queries, document ingestion, local LLM summarization, and memory updates coordinate across the stack:
+The sequence diagram below shows the implemented paper-search and document-ingestion flow. `research_pipeline.py` summarizes only with `--summarize` and writes a KnowledgeDigest inbox report only with `--save`. It does not automatically persist findings in USMC/GARDENER or create task-master follow-ups; those are separate, explicit module API calls by the operator, as in the memory/task example above.
 
 ```mermaid
 sequenceDiagram
@@ -299,12 +299,18 @@ sequenceDiagram
   Note over User,Tasks: "Paper Research & Ingestion Flow"
   User->>Pipeline: "Run query (e.g. PubMed / arXiv search)"
   Pipeline->>Pipeline: "Fetch paper metadata & abstracts"
-  Pipeline->>LLM: "Prompt for synthesis & structured summary"
-  LLM-->>Pipeline: "Return summarized findings"
-  Pipeline->>KD: "Save markdown report to inbox"
-  Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
-  Pipeline->>Memory: "Persist key findings (curated facts & organic notes)"
-  Pipeline->>Tasks: "Register follow-up research tasks"
+  opt Optional summary with --summarize
+    Pipeline->>LLM: "Prompt for synthesis & structured summary"
+    LLM-->>Pipeline: "Return summarized findings"
+  end
+  opt Inbox report with --save
+    Pipeline->>KD: "Save markdown report to inbox"
+    Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
+  end
+  opt Separate explicit module API calls by the operator
+    User->>Memory: "Optionally store findings via memory APIs"
+    User->>Tasks: "Optionally create follow-up tasks via task API"
+  end
   User->>KD: "Search & review via web UI (localhost:8787)"
 ```
 

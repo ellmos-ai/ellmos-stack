@@ -284,7 +284,7 @@ Daten werden in `/opt/ellmos-stack/data/` gespeichert (SQLite-Datenbanken, Dokum
 
 ## Workflows & Sequenz
 
-Das nachfolgende Sequenzdiagramm veranschaulicht das Zusammenspiel von automatisierter Paper-Recherche, Dokumenten-Ingestion, lokaler Modell-Inferenz und Wissenssicherung:
+Das nachfolgende Sequenzdiagramm zeigt den implementierten Recherche- und Ingestion-Ablauf. `research_pipeline.py` fasst nur mit `--summarize` zusammen und schreibt nur mit `--save` einen KnowledgeDigest-Inboxbericht. Die Pipeline speichert keine Erkenntnisse automatisch in USMC/GARDENER und erstellt keine Folgeaufgaben in task-master; dafür sind separate, ausdrückliche Modul-API-Aufrufe durch den Operator nötig, wie im Memory-/Task-Beispiel oben.
 
 ```mermaid
 sequenceDiagram
@@ -300,12 +300,18 @@ sequenceDiagram
   Note over User,Tasks: "Paper-Recherche- und Ingestion-Workflow"
   User->>Pipeline: "Suchanfrage ausführen (z. B. PubMed / arXiv)"
   Pipeline->>Pipeline: "Paper-Metadaten und Abstracts abrufen"
-  Pipeline->>LLM: "Synthese und strukturierte Zusammenfassung anfordern"
-  LLM-->>Pipeline: "Extrahierte Kernaussagen zurückgeben"
-  Pipeline->>KD: "Markdown-Bericht im Inbox-Verzeichnis ablegen"
-  Ingest->>KD: "Inbox-Dateien automatisch in SQLite FTS5 indexieren"
-  Pipeline->>Memory: "Wichtige Erkenntnisse sichern (kuratierte Fakten & organische Notizen)"
-  Pipeline->>Tasks: "Follow-up-Forschungsaufgaben eintragen"
+  opt Optionale Zusammenfassung mit --summarize
+    Pipeline->>LLM: "Synthese und strukturierte Zusammenfassung anfordern"
+    LLM-->>Pipeline: "Extrahierte Kernaussagen zurückgeben"
+  end
+  opt Inboxbericht mit --save
+    Pipeline->>KD: "Markdown-Bericht im Inbox-Verzeichnis ablegen"
+    Ingest->>KD: "Inbox-Dateien automatisch in SQLite FTS5 indexieren"
+  end
+  opt Separate ausdrückliche Modul-API-Aufrufe durch den Operator
+    User->>Memory: "Erkenntnisse optional über Memory-APIs speichern"
+    User->>Tasks: "Folgeaufgaben optional über die Task-API erstellen"
+  end
   User->>KD: "Recherche und Volltextsuche via Web-UI (localhost:8787)"
 ```
 
