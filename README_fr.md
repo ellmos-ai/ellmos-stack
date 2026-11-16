@@ -282,7 +282,7 @@ Les données sont stockées dans `/opt/ellmos-stack/data/` (bases de données SQ
 
 ## Flux de travail et séquence
 
-Le diagramme de séquence ci-dessous décrit la coordination, dans toute la pile, des recherches d’articles automatisées, de l’ingestion des documents, des résumés par le LLM local et des mises à jour de mémoire :
+Le diagramme de séquence ci-dessous montre le flux implémenté de recherche d’articles et d’ingestion de documents. `research_pipeline.py` ne résume qu’avec `--summarize` et n’écrit un rapport dans la boîte de réception de KnowledgeDigest qu’avec `--save`. Il ne conserve pas automatiquement les résultats dans USMC/GARDENER et ne crée pas de tâches de suivi dans task-master ; ces actions nécessitent des appels d'API de module explicites et séparés par l'opérateur, comme dans l'exemple mémoire/tâche ci-dessus.
 
 ```mermaid
 sequenceDiagram
@@ -298,12 +298,18 @@ sequenceDiagram
   Note over User,Tasks: "Paper Research & Ingestion Flow"
   User->>Pipeline: "Run query (e.g. PubMed / arXiv search)"
   Pipeline->>Pipeline: "Fetch paper metadata & abstracts"
-  Pipeline->>LLM: "Prompt for synthesis & structured summary"
-  LLM-->>Pipeline: "Return summarized findings"
-  Pipeline->>KD: "Save markdown report to inbox"
-  Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
-  Pipeline->>Memory: "Persist key findings (curated facts & organic notes)"
-  Pipeline->>Tasks: "Register follow-up research tasks"
+  opt Optional summary with --summarize
+    Pipeline->>LLM: "Prompt for synthesis & structured summary"
+    LLM-->>Pipeline: "Return summarized findings"
+  end
+  opt Inbox report with --save
+    Pipeline->>KD: "Save markdown report to inbox"
+    Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
+  end
+  opt Separate explicit module API calls by the operator
+    User->>Memory: "Optionally store findings via memory APIs"
+    User->>Tasks: "Optionally create follow-up tasks via task API"
+  end
   User->>KD: "Search & review via web UI (localhost:8787)"
 ```
 

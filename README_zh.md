@@ -285,7 +285,7 @@ Cron:
 <a id="gongzuoliu-yu-shixu"></a>
 ## 工作流与时序
 
-下方时序图详细展示了自动化论文查询、文档摄取、本地 LLM 摘要生成和记忆更新如何在该技术栈中协同工作：
+下方的时序图展示了已实现的论文检索与文档摄取流程。`research_pipeline.py` 仅在附带 `--summarize` 时进行摘要总结，仅在附带 `--save` 时向 KnowledgeDigest 收件箱写入报告。它不会自动将发现结果持久化到 USMC/GARDENER 中，也不会在 task-master 中创建后续任务；正如上方的记忆/任务示例所示，这些操作需要由操作员单独显式调用对应模块的 API。
 
 ```mermaid
 sequenceDiagram
@@ -301,12 +301,18 @@ sequenceDiagram
   Note over User,Tasks: "Paper Research & Ingestion Flow"
   User->>Pipeline: "Run query (e.g. PubMed / arXiv search)"
   Pipeline->>Pipeline: "Fetch paper metadata & abstracts"
-  Pipeline->>LLM: "Prompt for synthesis & structured summary"
-  LLM-->>Pipeline: "Return summarized findings"
-  Pipeline->>KD: "Save markdown report to inbox"
-  Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
-  Pipeline->>Memory: "Persist key findings (curated facts & organic notes)"
-  Pipeline->>Tasks: "Register follow-up research tasks"
+  opt Optional summary with --summarize
+    Pipeline->>LLM: "Prompt for synthesis & structured summary"
+    LLM-->>Pipeline: "Return summarized findings"
+  end
+  opt Inbox report with --save
+    Pipeline->>KD: "Save markdown report to inbox"
+    Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
+  end
+  opt Separate explicit module API calls by the operator
+    User->>Memory: "Optionally store findings via memory APIs"
+    User->>Tasks: "Optionally create follow-up tasks via task API"
+  end
   User->>KD: "Search & review via web UI (localhost:8787)"
 ```
 

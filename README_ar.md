@@ -297,7 +297,7 @@ Cron:
 <a id="workflows--sequence"></a>
 ## سير العمل والتسلسل
 
-يوضح مخطط التسلسل أدناه كيفية تنسيق الاستعلامات الآلية عن الأوراق العلمية، وإدخال المستندات، والتلخيص بواسطة نموذج LLM المحلي، وتحديثات الذاكرة عبر المكدس:
+يوضح مخطط التسلسل أدناه مسار البحث عن الأوراق العلمية واستيعاب المستندات المُنفَّذ. يقوم `research_pipeline.py` بالتلخيص فقط مع `--summarize`، ويكتب تقريرًا في صندوق وارد KnowledgeDigest فقط مع `--save`. ولا يقوم تلقائيًا بتخزين النتائج في USMC/GARDENER أو إنشاء مهام متابعة في task-master، بل تتطلب هذه الإجراءات استدعاءات منفصلة وصريحة لواجهة برمجة تطبيقات (API) الوحدات من قِبل المشغّل، كما في مثال الذاكرة/المهام أعلاه.
 
 ```mermaid
 sequenceDiagram
@@ -313,12 +313,18 @@ sequenceDiagram
   Note over User,Tasks: "Paper Research & Ingestion Flow"
   User->>Pipeline: "Run query (e.g. PubMed / arXiv search)"
   Pipeline->>Pipeline: "Fetch paper metadata & abstracts"
-  Pipeline->>LLM: "Prompt for synthesis & structured summary"
-  LLM-->>Pipeline: "Return summarized findings"
-  Pipeline->>KD: "Save markdown report to inbox"
-  Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
-  Pipeline->>Memory: "Persist key findings (curated facts & organic notes)"
-  Pipeline->>Tasks: "Register follow-up research tasks"
+  opt Optional summary with --summarize
+    Pipeline->>LLM: "Prompt for synthesis & structured summary"
+    LLM-->>Pipeline: "Return summarized findings"
+  end
+  opt Inbox report with --save
+    Pipeline->>KD: "Save markdown report to inbox"
+    Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
+  end
+  opt Separate explicit module API calls by the operator
+    User->>Memory: "Optionally store findings via memory APIs"
+    User->>Tasks: "Optionally create follow-up tasks via task API"
+  end
   User->>KD: "Search & review via web UI (localhost:8787)"
 ```
 

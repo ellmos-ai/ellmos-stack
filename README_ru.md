@@ -286,7 +286,7 @@ Cron:
 <a id="workflows--sequence"></a>
 ## Рабочие процессы и последовательность
 
-Диаграмма последовательности ниже показывает, как в стеке взаимодействуют автоматический поиск статей, приём документов, создание сводок локальной LLM и обновление памяти:
+Диаграмма последовательности ниже показывает реализованный процесс поиска статей и приёма документов. `research_pipeline.py` создаёт сводку только при указании `--summarize` и записывает отчёт во входящие KnowledgeDigest только при указании `--save`. Он не сохраняет найденные данные автоматически в USMC/GARDENER и не создаёт задач в task-master; для этого требуются отдельные явные вызовы API модулей оператором, как показано в примере с памятью и задачами выше.
 
 ```mermaid
 sequenceDiagram
@@ -302,12 +302,18 @@ sequenceDiagram
   Note over User,Tasks: "Paper Research & Ingestion Flow"
   User->>Pipeline: "Run query (e.g. PubMed / arXiv search)"
   Pipeline->>Pipeline: "Fetch paper metadata & abstracts"
-  Pipeline->>LLM: "Prompt for synthesis & structured summary"
-  LLM-->>Pipeline: "Return summarized findings"
-  Pipeline->>KD: "Save markdown report to inbox"
-  Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
-  Pipeline->>Memory: "Persist key findings (curated facts & organic notes)"
-  Pipeline->>Tasks: "Register follow-up research tasks"
+  opt Optional summary with --summarize
+    Pipeline->>LLM: "Prompt for synthesis & structured summary"
+    LLM-->>Pipeline: "Return summarized findings"
+  end
+  opt Inbox report with --save
+    Pipeline->>KD: "Save markdown report to inbox"
+    Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
+  end
+  opt Separate explicit module API calls by the operator
+    User->>Memory: "Optionally store findings via memory APIs"
+    User->>Tasks: "Optionally create follow-up tasks via task API"
+  end
   User->>KD: "Search & review via web UI (localhost:8787)"
 ```
 

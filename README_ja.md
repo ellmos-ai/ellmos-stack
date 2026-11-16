@@ -286,7 +286,7 @@ Cron:
 <a id="workflows--sequence"></a>
 ## ワークフローと処理順序
 
-以下のシーケンス図は、自動化された論文検索、ドキュメント取り込み、ローカル LLM による要約、メモリ更新が、スタック内でどのように連携するかを示します。
+以下のシーケンス図は、実装されている論文検索およびドキュメント取り込みフローを示しています。`research_pipeline.py` は `--summarize` 指定時のみ要約を行い、`--save` 指定時のみ KnowledgeDigest の受信トレイ（inbox）にレポートを出力します。調査結果を USMC/GARDENER に自動保存したり、task-master にフォローアップタスクを作成したりすることはありません。これらは上記のメモリ／タスク例のように、オペレーターによる個別かつ明示的なモジュール API 呼び出しによって実行されます。
 
 ```mermaid
 sequenceDiagram
@@ -302,12 +302,18 @@ sequenceDiagram
   Note over User,Tasks: "Paper Research & Ingestion Flow"
   User->>Pipeline: "Run query (e.g. PubMed / arXiv search)"
   Pipeline->>Pipeline: "Fetch paper metadata & abstracts"
-  Pipeline->>LLM: "Prompt for synthesis & structured summary"
-  LLM-->>Pipeline: "Return summarized findings"
-  Pipeline->>KD: "Save markdown report to inbox"
-  Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
-  Pipeline->>Memory: "Persist key findings (curated facts & organic notes)"
-  Pipeline->>Tasks: "Register follow-up research tasks"
+  opt Optional summary with --summarize
+    Pipeline->>LLM: "Prompt for synthesis & structured summary"
+    LLM-->>Pipeline: "Return summarized findings"
+  end
+  opt Inbox report with --save
+    Pipeline->>KD: "Save markdown report to inbox"
+    Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
+  end
+  opt Separate explicit module API calls by the operator
+    User->>Memory: "Optionally store findings via memory APIs"
+    User->>Tasks: "Optionally create follow-up tasks via task API"
+  end
   User->>KD: "Search & review via web UI (localhost:8787)"
 ```
 

@@ -286,7 +286,7 @@ Cron:
 <a id="workflows--sequence"></a>
 ## कार्यप्रवाह और क्रम
 
-नीचे का sequence diagram दिखाता है कि स्वचालित शोध-पत्र queries, दस्तावेज़ ग्रहण, स्थानीय LLM summarization और स्मृति अद्यतन स्टैक के विभिन्न भागों में कैसे समन्वित होते हैं:
+नीचे दिया गया sequence diagram लागू किए गए शोध-पत्र खोज और दस्तावेज़ ग्रहण प्रवाह को दिखाता है। `research_pipeline.py` केवल `--summarize` के साथ ही सारांश बनाता है और केवल `--save` के साथ ही KnowledgeDigest इनबॉक्स रिपोर्ट लिखता है। यह निष्कर्षों को USMC/GARDENER में स्वचालित रूप से सहेजता नहीं है और न ही task-master में फॉलो-अप कार्य बनाता है; इसके लिए ऑपरेटर द्वारा अलग से स्पष्ट मॉड्यूल API कॉल की आवश्यकता होती है, जैसा कि ऊपर दिए गए मेमोरी/टास्क उदाहरण में दिखाया गया है।
 
 ```mermaid
 sequenceDiagram
@@ -302,12 +302,18 @@ sequenceDiagram
   Note over User,Tasks: "Paper Research & Ingestion Flow"
   User->>Pipeline: "Run query (e.g. PubMed / arXiv search)"
   Pipeline->>Pipeline: "Fetch paper metadata & abstracts"
-  Pipeline->>LLM: "Prompt for synthesis & structured summary"
-  LLM-->>Pipeline: "Return summarized findings"
-  Pipeline->>KD: "Save markdown report to inbox"
-  Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
-  Pipeline->>Memory: "Persist key findings (curated facts & organic notes)"
-  Pipeline->>Tasks: "Register follow-up research tasks"
+  opt Optional summary with --summarize
+    Pipeline->>LLM: "Prompt for synthesis & structured summary"
+    LLM-->>Pipeline: "Return summarized findings"
+  end
+  opt Inbox report with --save
+    Pipeline->>KD: "Save markdown report to inbox"
+    Ingest->>KD: "Auto-index inbox files into SQLite FTS5"
+  end
+  opt Separate explicit module API calls by the operator
+    User->>Memory: "Optionally store findings via memory APIs"
+    User->>Tasks: "Optionally create follow-up tasks via task API"
+  end
   User->>KD: "Search & review via web UI (localhost:8787)"
 ```
 
