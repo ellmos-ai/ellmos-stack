@@ -7,7 +7,7 @@ name = "ellmos-stack"
 version = "0.1.1"
 description = "Self-hosted AI research and knowledge stack combining Ollama, n8n, USMC, GARDENER, task-master, and KnowledgeDigest."
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]
 requires-python = ">=3.10"
 authors = [{name = "ellmos-ai / BACH Contributors"}]
@@ -15,7 +15,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -46,20 +45,43 @@ Repository = "https://github.com/ellmos-ai/ellmos-stack"
 Issues = "https://github.com/ellmos-ai/ellmos-stack/issues"
 Documentation = "https://github.com/ellmos-ai/ellmos-stack/blob/master/README.md"
 Changelog = "https://github.com/ellmos-ai/ellmos-stack/blob/master/CHANGELOG.md"
+Contributing = "https://github.com/ellmos-ai/ellmos-stack/blob/master/CONTRIBUTING.md"
+"Code of Conduct" = "https://github.com/ellmos-ai/ellmos-stack/blob/master/CODE_OF_CONDUCT.md"
 "Third-Party Licenses" = "https://github.com/ellmos-ai/ellmos-stack/blob/master/THIRD_PARTY_LICENSES.md"
 "Parent Organization" = "https://github.com/ellmos-ai"
 "Umbrella Ecosystem" = "https://github.com/open-bricks"
 "LLM Ready" = "https://raw.githubusercontent.com/ellmos-ai/ellmos-stack/master/llms.txt"
-Security = "https://github.com/ellmos-ai/ellmos-stack/blob/master/README.md#security-notes"
+Security = "https://github.com/ellmos-ai/ellmos-stack/blob/master/SECURITY.md"
 
 [project.optional-dependencies]
-dev = ["pytest>=7", "ruff>=0.4"]
+dev = [
+    "PyYAML>=6.0",
+    "pytest>=7",
+    "ruff>=0.4",
+    "tomli>=2.0; python_version < '3.11'",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["services*"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q"
+addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
-pythonpath = "."
+pythonpath = ["."]
+xfail_strict = true
+asyncio_default_fixture_loop_scope = "function"
+norecursedirs = [
+    ".pytest_temp",
+    ".pytest_tmp",
+    ".git",
+    ".venv",
+    "venv",
+    "dist",
+    "build",
+    "_after-care",
+]
 
 [tool.ruff]
 line-length = 120

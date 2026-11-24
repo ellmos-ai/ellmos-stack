@@ -2,13 +2,14 @@
 
 > Machine-readable project context for LLMs, crawlers, and agentic coding tools.
 
-Last checked: 2026-09-19
+Last checked: 2026-11-24
 Latest release: v0.1.1 (2026-09-19) -- hardened CI matrix, PEP 621 metadata, Level 1 SBOM, and expanded contract test suite. See CHANGELOG.md.
 
 ## Canonical Links
 
 - Repository: https://github.com/ellmos-ai/ellmos-stack
 - Releases: https://github.com/ellmos-ai/ellmos-stack/releases
+- Product Skill: https://github.com/ellmos-ai/ellmos-stack/blob/master/SKILL.md
 - Ecosystem: https://github.com/ellmos-ai
 - Stack catalog (every stack in the family): https://github.com/ellmos-ai/stacks
 - Sibling stack, agent operations: https://github.com/ellmos-ai/agent-ops-stack
@@ -47,6 +48,7 @@ ellmos-stack is unrelated to Eclipse LMOS, Llama Stack, LLemonStack, generic n8n
 
 ## Primary Interfaces
 
+- `SKILL.md`: standalone agent usage guide (CLI workflows, flags, safety boundaries, and verification).
 - `stack.v2.json`: machine-readable composition manifest, schema `ellmos.stack.v2`. Canonical source for which components this stack declares.
 - `STACK-MAP.md`: human-readable composition blueprint derived from that manifest -- components, roles, sources, policies, and what is deliberately out of scope.
 - `docker-compose.yml`: runs Ollama and n8n with persistent Docker volumes.
@@ -76,11 +78,20 @@ Never commit a real `.env`, Telegram bot token, Anthropic key, database, documen
 - USMC, GARDENER, task-master, and KnowledgeDigest installs are pinned to exact Git commits; their state paths are separate, and KnowledgeDigest and cron jobs run as the restricted `ellmos-stack` user.
 - The optional Ollama reverse proxy in the README requires TLS plus a bearer token and does not expose the raw localhost Ollama port.
 
+## Installation & Quick Verification
+
+- Prerequisites: Python 3.10+ (for offline checks and service CLIs); Linux + Docker Compose v2 for full deployment.
+- Install in isolated environment: `python -m pip install -e ".[dev]"`
+- Verify offline: `python -m pytest -ra -v` and `python tools/check_release_gate.py`
+- Minimal CLI example: `python services/research_pipeline.py "local rag" --papers 3 --source arxiv`
+
 ## Validation
 
-Use the local smoke tests before committing. The standard GitHub Actions workflow runs compilation and the unit suite on Python 3.10, 3.11, and 3.12; the manual release workflow also runs the release checker and Linux Compose probes:
+Use the local smoke tests before committing. The standard GitHub Actions workflow runs packaging checks, Ruff linting, compilation, pytest, unittest, and the offline release gate on Python 3.10, 3.11, 3.12, and 3.13 across Ubuntu, Windows, and macOS; the manual release workflow also runs Linux Compose probes:
 
 ```bash
+ruff check .
+python -m pytest -ra -v
 PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v
 PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
 PYTHONIOENCODING=utf-8 python tools/check_release_gate.py

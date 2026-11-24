@@ -1,0 +1,8 @@
+# ellmos-stack
+
+Compatibility pointer for LLMs and agentic tools:
+
+- Canonical concise context: [llms.txt](llms.txt)
+- Product usage skill (CLI calls, safety boundaries, verification): [SKILL.md](SKILL.md)
+- Machine-readable stack manifest: [stack.v2.json](stack.v2.json)
+- Architecture blueprint: [STACK-MAP.md](STACK-MAP.md)

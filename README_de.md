@@ -5,7 +5,7 @@
 **[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md) · [हिन्दी](README_hi.md) · [العربية](README_ar.md) · [বাংলা](README_bn.md) · [Português](README_pt.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![Tests bestanden](https://img.shields.io/badge/Tests-68%20bestanden-brightgreen.svg)](tests)
+[![Tests bestanden](https://img.shields.io/badge/Tests-72%20bestanden-brightgreen.svg)](tests)
 [![Neuestes Release](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![ellmos ecosystem](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
 [![open-bricks umbrella](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
@@ -17,17 +17,17 @@
 [![Python: 3.10--3.13](https://img.shields.io/badge/Python-3.10--3.13-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-[Schnellstart](#schnellstart) • [Architektur](#architektur) • [Workflows & Sequenz](#workflows--sequenz) • [Stack-Familie](#stack-familie) • [Sicherheitshinweise](#sicherheitshinweise) • [llms.txt](llms.txt)
+[Schnellstart](#schnellstart) • [Mit deinem LLM installieren](#mit-deinem-llm-installieren) • [Architektur](#architektur) • [Workflows & Sequenz](#workflows--sequenz) • [Stack-Familie](#stack-familie) • [Sicherheitshinweise](#sicherheitshinweise) • [SKILL.md](SKILL.md) • [llms.txt](llms.txt)
 
 Ein selbst gehosteter KI-Stack für Forschung und Wissensmanagement. Kombiniert ein lokales LLM, Workflow-Automatisierung, persistenten Speicher und eine Wissensdatenbank in einem deploybaren Setup.
 
 > [!NOTE]
 > **Maschinenlesbarer Kontext für KI-Agenten:**
-> Für eine strukturierte Übersicht der Architektur-Grenzen, primären Schnittstellen, Sicherheits-Policies und Local-First-Inferenzregeln siehe [`llms.txt`](llms.txt) oder [`STACK-MAP.md`](STACK-MAP.md).
+> Für eine strukturierte Übersicht der Architektur-Grenzen, primären Schnittstellen, Sicherheits-Policies und Local-First-Inferenzregeln siehe [`llms.txt`](llms.txt), [`SKILL.md`](SKILL.md) oder [`STACK-MAP.md`](STACK-MAP.md).
 
 **Standardmäßig keine Abhängigkeit von einem gehosteten Modell.** Inferenz, Workflow-Zustand, Memory und Dokumente bleiben auf dem eigenen Server. Paper-Suche (PubMed/arXiv), Telegram, Paket-/Image-Downloads und das optionale Anthropic-Backend benötigen Netzwerkzugriff.
 
-Maschinenlesbarer Kontext für LLMs und Coding-Agenten: [`llms.txt`](llms.txt).
+Maschinenlesbarer Kontext für LLMs und Coding-Agenten: [`llms.txt`](llms.txt) · [`SKILL.md`](SKILL.md) · [`llm.txt`](llm.txt).
 
 ## Einstieg
 
@@ -101,6 +101,8 @@ Vollständiger Kompositions-Bauplan — Komponenten, Rollen, Quellen, Policies: 
 Das Repository enthält Smoke-Tests, die ohne Docker, Ollama, n8n, Telegram oder Live-Netzwerkdienste laufen:
 
 ```bash
+ruff check .
+PYTHONIOENCODING=utf-8 python -m pytest -ra -v
 PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v
 PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
 PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
@@ -108,7 +110,7 @@ PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 
 Diese Prüfungen sind ein Offline-Preflight und kein Linux-Deployment-Nachweis. Öffentliche Releases verwenden das getrennte [Stack-Release-Gate](RELEASE_GATE.md): exakte Container-Tags, einen echten Linux-Docker-Compose-Start mit Probes, Localhost-Bindings sowie eine Owner-Account-/TLS-/Firewall-Prüfung. Gleitende `latest`-Tags scheitern dort.
 
-Der Standard-Workflow in GitHub Actions führt Kompilierung und die vollständige Unit-Suite mit Python 3.10, 3.11 und 3.12 aus. Der manuelle Release-Workflow ergänzt den statischen Release-Checker und Linux-Compose-Probes.
+Der Standard-Workflow in GitHub Actions führt Paketierungsprüfungen, Ruff-Linting, Kompilierung, pytest, unittest und den Offline-Release-Check mit Python 3.10, 3.11, 3.12 und 3.13 über Ubuntu, Windows und macOS aus. Der manuelle Release-Workflow ergänzt Linux-Compose-Probes.
 
 ## Schnellstart
 
@@ -139,6 +141,15 @@ Der Installer:
 ```bash
 ssh -L 5678:127.0.0.1:5678 -L 8787:127.0.0.1:8787 root@dein-server
 # dann http://localhost:5678 für n8n und http://localhost:8787 für KnowledgeDigest öffnen
+```
+
+### Mit deinem LLM installieren
+
+```text
+Installiere und verifiziere https://github.com/ellmos-ai/ellmos-stack (bevorzuge ein Release-Tag oder einen gepinnten Commit; führe niemals ungeprüfte curl|sh-Pipes aus):
+1. Lies zuerst llms.txt und SKILL.md im Repo-Root.
+2. Erstelle eine isolierte Umgebung (.venv) und installiere die Entwicklungs-/Testwerkzeuge mit `python -m pip install -e ".[dev]"`.
+3. Führe die Offline-Prüfbefehle aus llms.txt aus (`pytest`, `ruff check .`, `tools/check_release_gate.py`) und berichte die gemessenen Ergebnisse, bevor ein Produktiv-Deployment gestartet wird.
 ```
 
 ## Konfiguration
@@ -445,7 +456,7 @@ Jeder Stack ist ein eigenständiges Repo mit eigenem `docker-compose.yml` und `i
 
 ## Lizenz
 
-MIT
+MIT — siehe [`LICENSE`](LICENSE), [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), [`CONTRIBUTING.md`](CONTRIBUTING.md) und [`SECURITY.md`](SECURITY.md).
 
 ---
 

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability / Sicherheitsmeldung
+    url: https://github.com/ellmos-ai/ellmos-stack/blob/master/SECURITY.md
+    about: Please report security vulnerabilities privately as described in SECURITY.md. / Sicherheitslücken bitte vertraulich gemäß SECURITY.md melden.

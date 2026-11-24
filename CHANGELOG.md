@@ -29,6 +29,14 @@ and the [GitHub releases](https://github.com/ellmos-ai/ellmos-stack/releases).
 
 ## Unreleased
 
+- **Repository Hygiene, PEP 639 Packaging, CI Matrix & P-022 Entrypoints (2026-11-24)**:
+  - Migrated `pyproject.toml` to PEP 639 (`license = "MIT"` without conflicting OSI license classifier), configured `[tool.setuptools.packages.find]` (`services*`) so `pip install --no-build-isolation --no-deps --dry-run .` passes cleanly, added `Contributing`/`Code of Conduct` URLs, and hardened `[tool.pytest.ini_options]` (`--strict-markers`, `xfail_strict = true`, `asyncio_default_fixture_loop_scope = "function"`, `.pytest_temp` in `norecursedirs` without relative `--basetemp`).
+  - Added `macos-latest` and package build/metadata verification (`pip install --no-build-isolation --no-deps --dry-run .`, `pip check`) to `.github/workflows/tests.yml`; added `.github/dependabot.yml` and bilingual `.github/ISSUE_TEMPLATE/{config.yml,bug_report.md,feature_request.md}`.
+  - Hardened `.gitignore` (`.pytest_temp/`, `.pytest_tmp*/`, `*MARKETING-LOG.txt`, `TO-DECIDE-USER*`, `TASKPLAN_*.md`, agent directories) and added `MANIFEST.in`.
+  - Parameterized `N8N_DATA_DEST` in `OPERATIONS.md` so `repo_privacy_gate.py` passes cleanly.
+  - Added bilingual governance docs (`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`) and P-022 LLM entrypoints (`SKILL.md`, `llm.txt`, updated `llms.txt` `Last checked: 2026-11-24`, `Install with your LLM` / `Mit deinem LLM installieren` sections, and Python 3.13 / 72-test badge sync across all 11 README editions).
+  - Expanded contract tests in `tests/test_metadata.py` (72 passed).
+
 - Corrected the research sequence across all eleven README editions: summary and inbox writes follow their CLI flags (`--summarize`, `--save`); memory persistence and task creation are separate explicit operator API calls, not automatic pipeline side effects (2026-11-03 / 2026-11-16).
 - Added complete Spanish, French, Japanese, Russian, Simplified Chinese, Hindi, Arabic, Bengali, and Portuguese README translations, reciprocal eleven-language navigation, and an indexed documentation-language list in llms.txt (2026-11-02). No runtime or release-version changes.
 

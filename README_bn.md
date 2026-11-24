@@ -5,7 +5,7 @@
 **[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md) · [हिन्दी](README_hi.md) · [العربية](README_ar.md) · [বাংলা](README_bn.md) · [Português](README_pt.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![Tests passed](https://img.shields.io/badge/tests-68%20passed-brightgreen.svg)](tests)
+[![Tests passed](https://img.shields.io/badge/tests-72%20passed-brightgreen.svg)](tests)
 [![Latest release](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![ellmos ecosystem](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
 [![open-bricks umbrella](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
@@ -106,7 +106,7 @@ PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
 PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
 
-মানক GitHub Actions কর্মপ্রবাহ Python 3.10, 3.11 এবং 3.12-এ compilation ও সম্পূর্ণ unit test suite চালায়। ম্যানুয়াল release কর্মপ্রবাহ অতিরিক্তভাবে static release checker এবং Linux Compose probe চালায়।
+মানক GitHub Actions কর্মপ্রবাহ Python 3.10, 3.11, 3.12 এবং 3.13-এ compilation ও সম্পূর্ণ unit test suite চালায়। ম্যানুয়াল release কর্মপ্রবাহ অতিরিক্তভাবে static release checker এবং Linux Compose probe চালায়।
 
 এই যাচাইগুলো অফলাইন প্রাথমিক যাচাই; এগুলো Linux-এ স্থাপনের দাবি নয়। প্রকাশ্য release-এ পৃথক [stack release gate](RELEASE_GATE.md) প্রযোজ্য: কনটেইনারের সুনির্দিষ্ট tag, বাস্তব Linux Docker Compose startup/probe, localhost binding পরীক্ষা এবং owner account/TLS/firewall পর্যালোচনা। পরিবর্তনশীল `latest` tag এই release gate-এ ব্যর্থ হয়।
 

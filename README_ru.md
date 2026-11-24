@@ -5,7 +5,7 @@
 **[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md) · [हिन्दी](README_hi.md) · [العربية](README_ar.md) · [বাংলা](README_bn.md) · [Português](README_pt.md)**
 
 [![Тесты ellmos-stack](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![Тесты пройдены](https://img.shields.io/badge/tests-68%20passed-brightgreen.svg)](tests)
+[![Тесты пройдены](https://img.shields.io/badge/tests-72%20passed-brightgreen.svg)](tests)
 [![Последний выпуск](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![Экосистема ellmos](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
 [![Объединение open-bricks](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
@@ -106,7 +106,7 @@ PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
 PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
 
-Стандартный рабочий процесс GitHub Actions запускает компиляцию и полный набор модульных тестов на Python 3.10, 3.11 и 3.12. Ручной рабочий процесс выпуска дополнительно запускает статический проверщик выпуска и проверки Docker Compose в Linux.
+Стандартный рабочий процесс GitHub Actions запускает компиляцию и полный набор модульных тестов на Python 3.10, 3.11, 3.12 и 3.13. Ручной рабочий процесс выпуска дополнительно запускает статический проверщик выпуска и проверки Docker Compose в Linux.
 
 Эти проверки — предварительный офлайн-контроль, а не подтверждение развёртывания в Linux. Для публичных выпусков действует отдельный [контроль выпуска стека](RELEASE_GATE.md): точные теги контейнеров, реальный запуск и проверка Docker Compose в Linux, проверки привязки к localhost и проверка учётной записи владельца, TLS и межсетевого экрана. Плавающие теги `latest` не проходят этот контроль.
 

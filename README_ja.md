@@ -5,7 +5,7 @@
 **[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md) · [हिन्दी](README_hi.md) · [العربية](README_ar.md) · [বাংলা](README_bn.md) · [Português](README_pt.md)**
 
 [![ellmos-stack のテスト](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![テスト合格](https://img.shields.io/badge/tests-68%20passed-brightgreen.svg)](tests)
+[![テスト合格](https://img.shields.io/badge/tests-72%20passed-brightgreen.svg)](tests)
 [![最新リリース](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![ellmos エコシステム](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
 [![open-bricks アンブレラ](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
@@ -106,7 +106,7 @@ PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
 PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
 
-標準の GitHub Actions ワークフローは、Python 3.10、3.11、3.12 でコンパイルとユニットテスト一式を実行します。手動のリリースワークフローでは、静的リリースチェッカーと Linux Compose プローブも実行します。
+標準の GitHub Actions ワークフローは、Python 3.10、3.11、3.12、3.13 でコンパイルとユニットテスト一式を実行します。手動のリリースワークフローでは、静的リリースチェッカーと Linux Compose プローブも実行します。
 
 これらのチェックはオフラインでの事前確認であり、Linux 上でデプロイできたことを示すものではありません。公開リリースでは、別途[スタックのリリースゲート](RELEASE_GATE.md)を通過する必要があります。このゲートでは、コンテナタグの厳密な指定、Linux Docker Compose の実起動とプローブ、localhost バインドの確認、所有者アカウント／TLS／ファイアウォールのレビューが求められます。可変な `latest` タグはリリースゲートで不合格になります。
 

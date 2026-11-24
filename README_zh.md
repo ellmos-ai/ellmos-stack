@@ -5,7 +5,7 @@
 **[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md) · [हिन्दी](README_hi.md) · [العربية](README_ar.md) · [বাংলা](README_bn.md) · [Português](README_pt.md)**
 
 [![ellmos-stack 测试](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![测试通过](https://img.shields.io/badge/tests-68%20passed-brightgreen.svg)](tests)
+[![测试通过](https://img.shields.io/badge/tests-72%20passed-brightgreen.svg)](tests)
 [![最新发布](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![ellmos 生态](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
 [![open-bricks 总项目](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
@@ -106,7 +106,7 @@ PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
 PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
 
-标准 GitHub Actions 工作流会在 Python 3.10、3.11 和 3.12 上执行编译和完整单元测试套件。手动发布工作流还会运行静态发布检查器和 Linux Compose 探测。
+标准 GitHub Actions 工作流会在 Python 3.10、3.11、3.12 和 3.13 上执行编译和完整单元测试套件。手动发布工作流还会运行静态发布检查器和 Linux Compose 探测。
 
 这些检查属于离线预检，不能据此宣称已在 Linux 上完成部署。公开发布使用独立的 [stack 发布门槛](RELEASE_GATE.md)：要求容器标签精确、真实启动并探测 Linux Docker Compose、检查 localhost 绑定，并审查所有者账户/TLS/防火墙配置。浮动的 `latest` 标签无法通过该发布门槛。
 
