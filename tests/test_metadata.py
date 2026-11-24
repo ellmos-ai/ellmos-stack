@@ -2,21 +2,42 @@
 Metadata and documentation consistency tests for ellmos-stack.
 
 Verifies:
-- README.md and README_de.md existence and bilingual parity
+- README.md and README_de.md (plus all 11 locale editions) existence and parity
 - Required badges present (tests, release, license, python, ecosystem, umbrella)
 - Mermaid diagrams syntax & quotation guardrails
-- llms.txt presence, canonical links, and up-to-date headers
-- pyproject.toml configuration consistency
+- llms.txt, llm.txt, and SKILL.md (P-022) presence, canonical links, and headers
+- PEP 621/639 pyproject.toml configuration consistency (no conflicting OSI license classifier)
+- CI matrix hardening and pytest basetemp CWD safety (T-20261114-932985855)
 """
 import re
 import unittest
 from pathlib import Path
 
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10 fallback
+    import tomli as tomllib
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 README_EN = REPO_ROOT / "README.md"
 README_DE = REPO_ROOT / "README_de.md"
 LLMS_TXT = REPO_ROOT / "llms.txt"
+LLM_TXT = REPO_ROOT / "llm.txt"
+SKILL_MD = REPO_ROOT / "SKILL.md"
 PYPROJECT = REPO_ROOT / "pyproject.toml"
+ALL_READMES = (
+    "README.md",
+    "README_de.md",
+    "README_ar.md",
+    "README_bn.md",
+    "README_es.md",
+    "README_fr.md",
+    "README_hi.md",
+    "README_ja.md",
+    "README_pt.md",
+    "README_ru.md",
+    "README_zh.md",
+)
 
 
 class TestDocumentationParity(unittest.TestCase):
@@ -58,20 +79,32 @@ class TestDocumentationParity(unittest.TestCase):
             content = path.read_text(encoding="utf-8")
             blocks = re.findall(r"```mermaid(.*?)```", content, re.DOTALL)
             self.assertGreater(len(blocks), 0, f"Expected mermaid blocks in {path.name}")
-            for i, block in enumerate(blocks):
-                # Ensure no unquoted parens inside node or actor labels
+            for block in blocks:
                 for line in block.splitlines():
                     line = line.strip()
                     if not line or line.startswith("%%"):
                         continue
-                    # Check sequence diagram participants / actors
                     if any(line.startswith(k) for k in ["participant ", "actor "]):
                         if "(" in line or ")" in line or ":" in line:
                             self.assertIn('"', line, f"Unquoted special chars in mermaid line in {path.name}: {line}")
 
+    def test_all_eleven_readmes_sync_validation_and_test_badge(self):
+        """All 11 README editions must exist, show the current badge, and include Python 3.13."""
+        for filename in ALL_READMES:
+            path = REPO_ROOT / filename
+            with self.subTest(readme=filename):
+                self.assertTrue(path.is_file(), f"{filename} missing")
+                text = path.read_text(encoding="utf-8")
+                self.assertRegex(
+                    text,
+                    r"badge/[^)\s]+-72%20",
+                    f"{filename} test badge must reflect 72 tests",
+                )
+                self.assertIn("3.13", text, f"{filename} must document Python 3.13 support")
+
 
 class TestLlmsTxtAndMetadata(unittest.TestCase):
-    """Verify machine-readable context file llms.txt and pyproject.toml."""
+    """Verify machine-readable context files (P-022) and pyproject.toml."""
 
     def test_llms_txt_exists_and_valid(self):
         self.assertTrue(LLMS_TXT.exists(), "llms.txt missing")
@@ -81,7 +114,29 @@ class TestLlmsTxtAndMetadata(unittest.TestCase):
         self.assertIn("https://github.com/ellmos-ai/ellmos-stack", content)
         self.assertIn("https://github.com/ellmos-ai/stacks", content)
         self.assertIn("https://github.com/ellmos-ai/agent-ops-stack", content)
+        self.assertIn("SKILL.md", content)
         self.assertIn("Last checked:", content)
+
+    def test_p022_llm_entrypoints_present(self):
+        self.assertTrue(SKILL_MD.is_file(), "SKILL.md missing")
+        self.assertTrue(LLM_TXT.is_file(), "llm.txt missing")
+        skill_text = SKILL_MD.read_text(encoding="utf-8")
+        self.assertIn("name: ellmos-stack", skill_text)
+        self.assertIn("services/research_pipeline.py", skill_text)
+        self.assertIn("tools/check_release_gate.py", skill_text)
+
+        llm_text = LLM_TXT.read_text(encoding="utf-8")
+        self.assertIn("llms.txt", llm_text)
+        self.assertIn("SKILL.md", llm_text)
+
+        en_text = README_EN.read_text(encoding="utf-8")
+        de_text = README_DE.read_text(encoding="utf-8")
+        self.assertIn("Install with your LLM", en_text)
+        self.assertIn("Mit deinem LLM installieren", de_text)
+        self.assertIn("```text", en_text)
+        self.assertIn("```text", de_text)
+        self.assertIn("SKILL.md", en_text)
+        self.assertIn("SKILL.md", de_text)
 
     def test_pyproject_contains_required_keywords(self):
         self.assertTrue(PYPROJECT.exists(), "pyproject.toml missing")
@@ -93,15 +148,22 @@ class TestLlmsTxtAndMetadata(unittest.TestCase):
 
 
 class TestPEP621AndSBOM(unittest.TestCase):
-    """Verify PEP 621 metadata standards, SBOM, and RunAsInvoker non-elevation."""
+    """Verify PEP 621/639 metadata standards, SBOM, governance docs, and RunAsInvoker."""
 
     def test_pep621_specification(self):
         content = PYPROJECT.read_text(encoding="utf-8")
-        self.assertIn('version = "0.1.1"', content)
-        self.assertIn('license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]', content)
-        self.assertIn('"Programming Language :: Python :: 3.10"', content)
-        self.assertIn('"Programming Language :: Python :: 3.13"', content)
-        self.assertIn('"License :: OSI Approved :: MIT License"', content)
+        data = tomllib.loads(content)
+        project = data["project"]
+        self.assertEqual(project["version"], "0.1.1")
+        self.assertEqual(project["license"], "MIT")
+        self.assertEqual(project["license-files"], ["LICENSE", "THIRD_PARTY_LICENSES.md"])
+        self.assertIn("Programming Language :: Python :: 3.10", project["classifiers"])
+        self.assertIn("Programming Language :: Python :: 3.13", project["classifiers"])
+        self.assertFalse(
+            any(c.startswith("License :: OSI Approved ::") for c in project["classifiers"]),
+            "PEP 639 string license must not be paired with an OSI License classifier",
+        )
+        self.assertIn("services*", data["tool"]["setuptools"]["packages"]["find"]["include"])
 
         required_urls = [
             "Homepage",
@@ -109,6 +171,8 @@ class TestPEP621AndSBOM(unittest.TestCase):
             "Issues",
             "Documentation",
             "Changelog",
+            "Contributing",
+            "Code of Conduct",
             "Third-Party Licenses",
             "Parent Organization",
             "Umbrella Ecosystem",
@@ -117,7 +181,16 @@ class TestPEP621AndSBOM(unittest.TestCase):
         ]
         for url_key in required_urls:
             with self.subTest(url_key=url_key):
-                self.assertIn(f'"{url_key}" = ' if " " in url_key else f"{url_key} = ", content)
+                self.assertIn(url_key, project["urls"])
+
+    def test_no_relative_basetemp_in_pytest_config(self):
+        data = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
+        pytest_cfg = data["tool"]["pytest"]["ini_options"]
+        addopts = pytest_cfg.get("addopts", "")
+        self.assertNotIn("--basetemp=.", addopts)
+        self.assertNotIn("--basetemp .", addopts)
+        self.assertEqual(pytest_cfg.get("asyncio_default_fixture_loop_scope"), "function")
+        self.assertIn(".pytest_temp", pytest_cfg.get("norecursedirs", []))
 
     def test_third_party_licenses_sbom_exists(self):
         sbom_file = REPO_ROOT / "THIRD_PARTY_LICENSES.md"
@@ -136,6 +209,22 @@ class TestPEP621AndSBOM(unittest.TestCase):
             with self.subTest(invariant=inv_id):
                 self.assertIn(inv_id, content, f"Invariant {inv_id} missing in SBOM")
 
+    def test_governance_docs_and_templates_present(self):
+        for rel in (
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md",
+            "SECURITY.md",
+            "MANIFEST.in",
+            ".github/dependabot.yml",
+            ".github/ISSUE_TEMPLATE/config.yml",
+            ".github/ISSUE_TEMPLATE/bug_report.md",
+            ".github/ISSUE_TEMPLATE/feature_request.md",
+        ):
+            with self.subTest(path=rel):
+                self.assertTrue((REPO_ROOT / rel).is_file(), f"Missing {rel}")
+        coc = (REPO_ROOT / "CODE_OF_CONDUCT.md").read_text(encoding="utf-8")
+        self.assertNotIn("lukas@geiger.sh", coc)
+
     def test_gitignore_patterns(self):
         gitignore_file = REPO_ROOT / ".gitignore"
         self.assertTrue(gitignore_file.exists(), ".gitignore missing")
@@ -149,7 +238,11 @@ class TestPEP621AndSBOM(unittest.TestCase):
             "*-ASUS*",
             "*-WORKSTATION*",
             ".pytest_cache/",
+            ".pytest_temp/",
             ".ruff_cache/",
+            "*MARKETING-LOG.txt",
+            "TO-DECIDE-USER*",
+            "TASKPLAN_*.md",
             "uv.lock",
         ]
         for pattern in required_patterns:
@@ -171,7 +264,7 @@ class TestPEP621AndSBOM(unittest.TestCase):
         self.assertIn('version = "0.1.1"', pyproject_content)
         self.assertIn("## [0.1.1] - 2026-09-19", changelog_content)
         self.assertIn("v0.1.1 (2026-09-19)", llms_content)
-        self.assertIn("Last checked: 2026-09-19", llms_content)
+        self.assertIn("Last checked: 2026-11-24", llms_content)
 
 
 class TestCIWorkflowHardening(unittest.TestCase):
@@ -187,7 +280,10 @@ class TestCIWorkflowHardening(unittest.TestCase):
         self.assertIn("timeout-minutes: 15", content)
         self.assertIn("ubuntu-latest", content)
         self.assertIn("windows-latest", content)
+        self.assertIn("macos-latest", content)
         self.assertIn("'3.13'", content)
+        self.assertIn("pip install --no-build-isolation --no-deps --dry-run .", content)
+        self.assertIn("pip check", content)
         self.assertIn("ruff check .", content)
         self.assertIn("pytest", content)
         self.assertIn("check_release_gate.py", content)

@@ -5,7 +5,7 @@
 **[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md) · [हिन्दी](README_hi.md) · [العربية](README_ar.md) · [বাংলা](README_bn.md) · [Português](README_pt.md)**
 
 [![Testes da ellmos-stack](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![Testes aprovados](https://img.shields.io/badge/tests-68%20passed-brightgreen.svg)](tests)
+[![Testes aprovados](https://img.shields.io/badge/tests-72%20passed-brightgreen.svg)](tests)
 [![Versão mais recente](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![Ecossistema ellmos](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
 [![open-bricks umbrella](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
@@ -106,7 +106,7 @@ PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
 PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
 
-O fluxo padrão do GitHub Actions executa a compilação e toda a suíte de testes com Python 3.10, 3.11 e 3.12. O fluxo manual de release também executa o verificador estático de release e sondagens do Compose no Linux.
+O fluxo padrão do GitHub Actions executa a compilação e toda a suíte de testes com Python 3.10, 3.11, 3.12 e 3.13. O fluxo manual de release também executa o verificador estático de release e sondagens do Compose no Linux.
 
 Essas verificações são uma validação preliminar offline; elas não comprovam uma implantação no Linux. Releases públicos passam pelo [gate de release da stack](RELEASE_GATE.md), que exige tags exatas de contêiner, uma inicialização e sondagem reais do Docker Compose no Linux, verificações de vinculação ao localhost e uma revisão da conta do proprietário, do TLS e do firewall. Tags flutuantes `latest` não passam nesse gate de release.
 

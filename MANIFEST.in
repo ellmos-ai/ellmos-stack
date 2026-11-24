@@ -1,0 +1,22 @@
+include LICENSE
+include THIRD_PARTY_LICENSES.md
+include README.md
+include README_*.md
+include CHANGELOG.md
+include CODE_OF_CONDUCT.md
+include CONTRIBUTING.md
+include SECURITY.md
+include SKILL.md
+include llms.txt
+include llm.txt
+include OPERATIONS.md
+include RELEASE_GATE.md
+include STACK-MAP.md
+include stack.v2.json
+include .env.example
+include docker-compose.yml
+include install.sh
+recursive-include config *
+recursive-include services *.py
+recursive-include tools *.py
+recursive-include tests *.py

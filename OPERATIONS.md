@@ -43,7 +43,8 @@ systemctl stop knowledgedigest
 cd "$STACK_DIR"
 docker compose stop n8n ollama
 
-N8N_VOLUME=$(docker inspect n8n --format '{{range .Mounts}}{{if eq .Destination "/home/node/.n8n"}}{{.Name}}{{end}}{{end}}')
+N8N_DATA_DEST=/home/node/.n8n
+N8N_VOLUME=$(docker inspect n8n --format "{{range .Mounts}}{{if eq .Destination \"$N8N_DATA_DEST\"}}{{.Name}}{{end}}{{end}}")
 OLLAMA_VOLUME=$(docker inspect ollama --format '{{range .Mounts}}{{if eq .Destination "/root/.ollama"}}{{.Name}}{{end}}{{end}}')
 N8N_MOUNT=$(docker volume inspect "$N8N_VOLUME" --format '{{.Mountpoint}}')
 OLLAMA_MOUNT=$(docker volume inspect "$OLLAMA_VOLUME" --format '{{.Mountpoint}}')

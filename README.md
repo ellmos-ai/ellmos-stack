@@ -5,7 +5,7 @@
 **[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md) · [हिन्दी](README_hi.md) · [العربية](README_ar.md) · [বাংলা](README_bn.md) · [Português](README_pt.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![Tests passed](https://img.shields.io/badge/tests-68%20passed-brightgreen.svg)](tests)
+[![Tests passed](https://img.shields.io/badge/tests-72%20passed-brightgreen.svg)](tests)
 [![Latest release](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![ellmos ecosystem](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
 [![open-bricks umbrella](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
@@ -17,17 +17,17 @@
 [![Python: 3.10--3.13](https://img.shields.io/badge/Python-3.10--3.13-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-[Quickstart](#quickstart) • [Architecture](#architecture) • [Workflows & Sequence](#workflows--sequence) • [Stack Family](#stack-family) • [Security](#security-notes) • [llms.txt](llms.txt)
+[Quickstart](#quickstart) • [Install with your LLM](#install-with-your-llm) • [Architecture](#architecture) • [Workflows & Sequence](#workflows--sequence) • [Stack Family](#stack-family) • [Security](#security-notes) • [SKILL.md](SKILL.md) • [llms.txt](llms.txt)
 
 A self-hosted AI research and knowledge management stack. Combines a local LLM, workflow automation, persistent memory, and a knowledge base into one deployable setup.
 
 > [!NOTE]
 > **Machine-Readable Context for AI Agents:**
-> For an indexed overview of architectural boundaries, primary interfaces, safety policies, and local-first inference rules, see [`llms.txt`](llms.txt) or [`STACK-MAP.md`](STACK-MAP.md).
+> For an indexed overview of architectural boundaries, primary interfaces, safety policies, and local-first inference rules, see [`llms.txt`](llms.txt), [`SKILL.md`](SKILL.md), or [`STACK-MAP.md`](STACK-MAP.md).
 
 **No hosted model dependency by default.** Inference, workflow state, memory, and documents stay on your server. Paper search (PubMed/arXiv), Telegram, package/image downloads, and the optional Anthropic summary backend require network access.
 
-Machine-readable context for LLMs and agentic coding tools: [`llms.txt`](llms.txt).
+Machine-readable context for LLMs and agentic coding tools: [`llms.txt`](llms.txt) · [`SKILL.md`](SKILL.md) · [`llm.txt`](llm.txt).
 
 ## Start here
 
@@ -101,12 +101,14 @@ Full composition blueprint — components, roles, sources, policies: **[STACK-MA
 The repository includes smoke tests that run without Docker, Ollama, n8n, Telegram, or live network services:
 
 ```bash
+ruff check .
+PYTHONIOENCODING=utf-8 python -m pytest -ra -v
 PYTHONIOENCODING=utf-8 python -m unittest discover -s tests -v
 PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
 PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
 
-The standard GitHub Actions workflow runs compilation and the full unit suite on Python 3.10, 3.11, and 3.12. The manual release workflow additionally runs the static release checker and Linux Compose probes.
+The standard GitHub Actions workflow runs packaging checks, Ruff linting, compilation, pytest, unittest, and the offline release gate on Python 3.10, 3.11, 3.12, and 3.13 across Ubuntu, Windows, and macOS. The manual release workflow additionally runs the static release checker and Linux Compose probes.
 
 These checks are an offline preflight, not a Linux deployment claim. Public releases use the separate [stack release gate](RELEASE_GATE.md): exact container tags, a real Linux Docker Compose startup/probe, localhost-binding checks, and an owner-account/TLS/firewall review. Floating `latest` tags fail that release gate.
 
@@ -139,6 +141,15 @@ The installer:
 ```bash
 ssh -L 5678:127.0.0.1:5678 -L 8787:127.0.0.1:8787 root@your-server
 # then open http://localhost:5678 for n8n and http://localhost:8787 for KnowledgeDigest
+```
+
+### Install with your LLM
+
+```text
+Install and verify https://github.com/ellmos-ai/ellmos-stack (prefer a tagged release or pinned commit; never run unreviewed curl|sh pipes):
+1. Read llms.txt and SKILL.md in the repository root first.
+2. Create an isolated environment (.venv) and install dev/test tooling via `python -m pip install -e ".[dev]"`.
+3. Run the offline verification commands from llms.txt (`pytest`, `ruff check .`, `tools/check_release_gate.py`) and report the measured results before touching production Docker/Compose deployment.
 ```
 
 ## Configuration
@@ -444,7 +455,7 @@ Each stack is a self-contained repo with its own manifest and `install.sh`. They
 
 ## License
 
-MIT
+MIT — see [`LICENSE`](LICENSE), [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), [`CONTRIBUTING.md`](CONTRIBUTING.md), and [`SECURITY.md`](SECURITY.md).
 
 ---
 

@@ -1,5 +1,7 @@
 # Credentials & Secrets
 .env
+.env.*
+!.env.example
 *.key
 *.pem
 *.secret
@@ -7,9 +9,13 @@
 # Runtime
 data/
 *.db
+*.db-wal
+*.db-shm
 *.log
 __pycache__/
 .pytest_cache/
+.pytest_temp/
+.pytest_tmp*/
 .release-gate/
 *.pyc
 venv/
@@ -21,16 +27,24 @@ venv/
 Thumbs.db
 desktop.ini
 
-# IDE
+# IDE & Agent Workspaces
 .vscode/
 .idea/
+.claude/
+.codex/
+.gemini/
+.agent/
 
 # Archive
 inbox/
 archive/
 
-# Interne Aufgabenliste
+# Interne Aufgabenliste & Steuerdokumente
 TODO.md
+BEFUNDE.md
+*MARKETING-LOG.txt
+TO-DECIDE-USER*
+TASKPLAN_*.md
 
 # Interne Pflege-/Wartungsprotokolle und Sperren
 _after-care/

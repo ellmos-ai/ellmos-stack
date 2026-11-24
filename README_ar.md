@@ -5,7 +5,7 @@
 **[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md) · [हिन्दी](README_hi.md) · [العربية](README_ar.md) · [বাংলা](README_bn.md) · [Português](README_pt.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![Tests passed](https://img.shields.io/badge/tests-68%20passed-brightgreen.svg)](tests)
+[![Tests passed](https://img.shields.io/badge/tests-72%20passed-brightgreen.svg)](tests)
 [![Latest release](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![ellmos ecosystem](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
 [![open-bricks umbrella](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
@@ -109,7 +109,7 @@ PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
 
 
-يشغّل سير عمل GitHub Actions القياسي التجميع ومجموعة اختبارات الوحدات كاملةً على Python 3.10 و3.11 و3.12. كما يشغّل سير عمل الإصدار اليدوي مدقق الإصدار الثابت واختبارات Compose على Linux.
+يشغّل سير عمل GitHub Actions القياسي التجميع ومجموعة اختبارات الوحدات كاملةً على Python 3.10 و3.11 و3.12 و3.13. كما يشغّل سير عمل الإصدار اليدوي مدقق الإصدار الثابت واختبارات Compose على Linux.
 
 هذه الفحوصات تمهيد أولي دون اتصال، وليست ادعاءً بنشر على Linux. تستخدم الإصدارات العامة بوابة الإصدار المنفصلة للمكدس [stack release gate](RELEASE_GATE.md): وسوم حاويات محددة بدقة، وتشغيلًا واختبارًا فعليين لـ Docker Compose على Linux، وفحوصات الارتباط بـ localhost، ومراجعة لحساب المالك وTLS وجدار الحماية. تفشل هذه البوابة عند استخدام وسوم `latest` المتحركة.
 

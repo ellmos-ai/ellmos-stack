@@ -5,7 +5,7 @@
 **[English](README.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [日本語](README_ja.md) · [Русский](README_ru.md) · [简体中文](README_zh.md) · [हिन्दी](README_hi.md) · [العربية](README_ar.md) · [বাংলা](README_bn.md) · [Português](README_pt.md)**
 
 [![ellmos-stack tests](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-stack/actions/workflows/tests.yml)
-[![Tests passed](https://img.shields.io/badge/tests-68%20passed-brightgreen.svg)](tests)
+[![Tests passed](https://img.shields.io/badge/tests-72%20passed-brightgreen.svg)](tests)
 [![Latest release](https://img.shields.io/github/v/release/ellmos-ai/ellmos-stack?label=release)](https://github.com/ellmos-ai/ellmos-stack/releases)
 [![ellmos ecosystem](https://img.shields.io/badge/ecosystem-ellmos--ai-blue.svg)](https://github.com/ellmos-ai)
 [![open-bricks umbrella](https://img.shields.io/badge/umbrella-open--bricks-blueviolet.svg)](https://github.com/open-bricks)
@@ -106,7 +106,7 @@ PYTHONIOENCODING=utf-8 python -m compileall -q services tests tools
 PYTHONIOENCODING=utf-8 python tools/check_release_gate.py
 ```
 
-El flujo estándar de GitHub Actions ejecuta la compilación y toda la suite de pruebas unitarias en Python 3.10, 3.11 y 3.12. El flujo manual de publicación también ejecuta el verificador estático de publicación y pruebas de Compose en Linux.
+El flujo estándar de GitHub Actions ejecuta la compilación y toda la suite de pruebas unitarias en Python 3.10, 3.11, 3.12 y 3.13. El flujo manual de publicación también ejecuta el verificador estático de publicación y pruebas de Compose en Linux.
 
 Estas comprobaciones son una verificación previa sin conexión, no demuestran un despliegue en Linux. Las publicaciones públicas usan la [puerta de publicación de la pila](RELEASE_GATE.md), que exige etiquetas exactas de contenedor, un inicio y una prueba reales de Docker Compose en Linux, comprobaciones de vinculación a localhost y una revisión de la cuenta del propietario, TLS y firewall. Las etiquetas flotantes `latest` no superan esa puerta.
 
